@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Twitter, Crown, Check, Sparkles } from "lucide-react";
+import { payUSD } from "@/lib/pay";
 
 export const Route = createFileRoute("/_authenticated/x-premium")({
   head: () => ({ meta: [{ title: "X Premium — ARC NOVA" }] }),
@@ -79,28 +80,29 @@ function PlanCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
 
 function CheckoutModal({ plan, user, onClose }: { plan: Plan; user: { id: string; email?: string }; onClose: () => void }) {
   const [username, setUsername] = useState("");
-  const [txHash, setTxHash] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!username.trim()) { toast.error("Enter your X username"); return; }
     setBusy(true);
     try {
+      const hash = await payUSD(plan.price);
       const { error } = await supabase.from("purchases").insert({
         user_id: user.id,
         buyer_email: user.email ?? "",
         product_type: "x-premium",
         product_name: `X ${plan.tier} (${plan.duration})`,
         price: plan.price,
-        tx_hash: txHash || null,
+        tx_hash: hash,
         custom_username: username.trim(),
         status: "pending",
       });
       if (error) throw error;
-      toast.success("Subscription requested — pending admin confirmation");
+      toast.success("Payment confirmed — pending admin delivery");
       onClose();
     } catch (e: unknown) {
-      toast.error((e as Error).message);
+      toast.error((e as Error).message ?? "Payment failed");
     } finally {
       setBusy(false);
     }
@@ -116,15 +118,10 @@ function CheckoutModal({ plan, user, onClose }: { plan: Plan; user: { id: string
           <input value={username} onChange={(e) => setUsername(e.target.value)} required placeholder="@yourhandle" maxLength={64}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary" />
         </div>
-        <div>
-          <label className="block text-xs font-display tracking-widest text-muted-foreground mb-1">TX HASH (OPTIONAL)</label>
-          <input value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="0x…" maxLength={120}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary" />
-        </div>
         <div className="flex gap-2 pt-2">
           <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-zinc-800 hover:border-zinc-600">Cancel</button>
           <button disabled={busy} className="flex-1 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50">
-            {busy ? "…" : "Place Order"}
+            {busy ? "Confirming…" : "Pay & Subscribe"}
           </button>
         </div>
       </form>
