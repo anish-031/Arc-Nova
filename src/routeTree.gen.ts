@@ -17,6 +17,7 @@ import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedTopupRouteImport } from './routes/_authenticated/topup'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
+import { Route as AuthenticatedRewardsRouteImport } from './routes/_authenticated/rewards'
 import { Route as AuthenticatedQuestsRouteImport } from './routes/_authenticated/quests'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedMemesRouteImport } from './routes/_authenticated/memes'
@@ -63,6 +64,11 @@ const AuthenticatedStoreRoute = AuthenticatedStoreRouteImport.update({
   path: '/store',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRewardsRoute = AuthenticatedRewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedQuestsRoute = AuthenticatedQuestsRouteImport.update({
   id: '/quests',
   path: '/quests',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/memes': typeof AuthenticatedMemesRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/quests': typeof AuthenticatedQuestsRoute
+  '/rewards': typeof AuthenticatedRewardsRoute
   '/store': typeof AuthenticatedStoreRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/topup': typeof AuthenticatedTopupRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/memes': typeof AuthenticatedMemesRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/quests': typeof AuthenticatedQuestsRoute
+  '/rewards': typeof AuthenticatedRewardsRoute
   '/store': typeof AuthenticatedStoreRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/topup': typeof AuthenticatedTopupRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/_authenticated/memes': typeof AuthenticatedMemesRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/quests': typeof AuthenticatedQuestsRoute
+  '/_authenticated/rewards': typeof AuthenticatedRewardsRoute
   '/_authenticated/store': typeof AuthenticatedStoreRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
   '/_authenticated/topup': typeof AuthenticatedTopupRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/memes'
     | '/orders'
     | '/quests'
+    | '/rewards'
     | '/store'
     | '/tools'
     | '/topup'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/memes'
     | '/orders'
     | '/quests'
+    | '/rewards'
     | '/store'
     | '/tools'
     | '/topup'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/_authenticated/memes'
     | '/_authenticated/orders'
     | '/_authenticated/quests'
+    | '/_authenticated/rewards'
     | '/_authenticated/store'
     | '/_authenticated/tools'
     | '/_authenticated/topup'
@@ -255,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStoreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/rewards': {
+      id: '/_authenticated/rewards'
+      path: '/rewards'
+      fullPath: '/rewards'
+      preLoaderRoute: typeof AuthenticatedRewardsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/quests': {
       id: '/_authenticated/quests'
       path: '/quests'
@@ -307,6 +326,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMemesRoute: typeof AuthenticatedMemesRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedQuestsRoute: typeof AuthenticatedQuestsRoute
+  AuthenticatedRewardsRoute: typeof AuthenticatedRewardsRoute
   AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
   AuthenticatedTopupRoute: typeof AuthenticatedTopupRoute
@@ -321,6 +341,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMemesRoute: AuthenticatedMemesRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedQuestsRoute: AuthenticatedQuestsRoute,
+  AuthenticatedRewardsRoute: AuthenticatedRewardsRoute,
   AuthenticatedStoreRoute: AuthenticatedStoreRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
   AuthenticatedTopupRoute: AuthenticatedTopupRoute,
