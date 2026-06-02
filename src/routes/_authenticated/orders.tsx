@@ -18,8 +18,20 @@ function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    supabase.from("purchases").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
-      .then(({ data }) => setOrders((data ?? []) as Order[]));
+    let active = true;
+    const load = () =>
+      supabase.from("purchases").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
+        .then(({ data }) => { if (active) setOrders((data ?? []) as Order[]); });
+    load();
+
+    const channel = supabase
+      .channel(`purchases:${user.id}`)
+      .on("postgres_changes" as never,
+        { event: "*", schema: "public", table: "purchases", filter: `user_id=eq.${user.id}` },
+        () => load())
+      .subscribe();
+
+    return () => { active = false; supabase.removeChannel(channel); };
   }, [user.id]);
 
   return (
