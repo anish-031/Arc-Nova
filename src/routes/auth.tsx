@@ -1,0 +1,81 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/auth")({
+  head: () => ({ meta: [{ title: "Sign in — ARC NOVA" }, { name: "description", content: "Sign in or create your ARC NOVA account." }] }),
+  component: AuthPage,
+});
+
+function AuthPage() {
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: "/dashboard", replace: true });
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session) navigate({ to: "/dashboard", replace: true });
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email, password,
+          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+        });
+        if (error) throw error;
+        toast.success("Account created. Check your email to verify.");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        toast.success("Welcome back, operator.");
+      }
+    } catch (err: any) {
+      toast.error(err.message ?? "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-6 scanline">
+      <div className="w-full max-w-md panel border border-zinc-800 rounded-lg p-8">
+        <Link to="/" className="font-display tracking-widest text-neon text-sm">ARC NOVA</Link>
+        <h1 className="mt-4 text-2xl font-bold">{mode === "signin" ? "Access Terminal" : "Create Identity"}</h1>
+        <p className="text-sm text-muted-foreground mt-1">Sign in with email. Wallet connect available inside the app.</p>
+
+        <form onSubmit={submit} className="mt-6 space-y-4">
+          <div>
+            <label className="block text-xs font-display tracking-widest text-muted-foreground mb-1">EMAIL</label>
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-zinc-900 border border-zinc-800 rounded px-3 py-2 focus:outline-none focus:border-primary transition-colors" />
+          </div>
+          <div>
+            <label className="block text-xs font-display tracking-widest text-muted-foreground mb-1">PASSWORD</label>
+            <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-zinc-900 border border-zinc-800 rounded px-3 py-2 focus:outline-none focus:border-primary transition-colors" />
+          </div>
+          <button disabled={loading} className="w-full py-2.5 rounded bg-primary text-primary-foreground font-medium glow-border disabled:opacity-50">
+            {loading ? "..." : mode === "signin" ? "Sign in" : "Create account"}
+          </button>
+        </form>
+
+        <button onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+          className="mt-4 text-sm text-muted-foreground hover:text-neon transition-colors w-full">
+          {mode === "signin" ? "No account? Create one →" : "Have an account? Sign in →"}
+        </button>
+      </div>
+    </div>
+  );
+}
