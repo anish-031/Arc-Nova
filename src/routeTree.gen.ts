@@ -18,6 +18,7 @@ import { Route as AuthenticatedTopupRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as AuthenticatedMemesRouteImport } from './routes/_authenticated/memes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
@@ -65,6 +66,11 @@ const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMemesRoute = AuthenticatedMemesRouteImport.update({
+  id: '/memes',
+  path: '/memes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/memes': typeof AuthenticatedMemesRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/store': typeof AuthenticatedStoreRoute
   '/tools': typeof AuthenticatedToolsRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/memes': typeof AuthenticatedMemesRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/store': typeof AuthenticatedStoreRoute
   '/tools': typeof AuthenticatedToolsRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/memes': typeof AuthenticatedMemesRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/store': typeof AuthenticatedStoreRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/dashboard'
+    | '/memes'
     | '/orders'
     | '/store'
     | '/tools'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/dashboard'
+    | '/memes'
     | '/orders'
     | '/store'
     | '/tools'
@@ -146,6 +157,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/memes'
     | '/_authenticated/orders'
     | '/_authenticated/store'
     | '/_authenticated/tools'
@@ -225,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/memes': {
+      id: '/_authenticated/memes'
+      path: '/memes'
+      fullPath: '/memes'
+      preLoaderRoute: typeof AuthenticatedMemesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -245,6 +264,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMemesRoute: typeof AuthenticatedMemesRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
@@ -256,6 +276,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMemesRoute: AuthenticatedMemesRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedStoreRoute: AuthenticatedStoreRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
