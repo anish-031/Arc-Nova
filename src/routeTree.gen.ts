@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedXPremiumRouteImport } from './routes/_authenticated/x-premium'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTopupRouteImport } from './routes/_authenticated/topup'
 import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedXPremiumRoute = AuthenticatedXPremiumRouteImport.update({
+  id: '/x-premium',
+  path: '/x-premium',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/store': typeof AuthenticatedStoreRoute
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/x-premium': typeof AuthenticatedXPremiumRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/store': typeof AuthenticatedStoreRoute
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/x-premium': typeof AuthenticatedXPremiumRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/_authenticated/store': typeof AuthenticatedStoreRoute
   '/_authenticated/topup': typeof AuthenticatedTopupRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
+  '/_authenticated/x-premium': typeof AuthenticatedXPremiumRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/store'
     | '/topup'
     | '/wallet'
+    | '/x-premium'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/store'
     | '/topup'
     | '/wallet'
+    | '/x-premium'
   id:
     | '__root__'
     | '/'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/_authenticated/store'
     | '/_authenticated/topup'
     | '/_authenticated/wallet'
+    | '/_authenticated/x-premium'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +170,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/x-premium': {
+      id: '/_authenticated/x-premium'
+      path: '/x-premium'
+      fullPath: '/x-premium'
+      preLoaderRoute: typeof AuthenticatedXPremiumRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/wallet': {
       id: '/_authenticated/wallet'
@@ -211,6 +230,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
   AuthenticatedTopupRoute: typeof AuthenticatedTopupRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
+  AuthenticatedXPremiumRoute: typeof AuthenticatedXPremiumRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -220,6 +240,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStoreRoute: AuthenticatedStoreRoute,
   AuthenticatedTopupRoute: AuthenticatedTopupRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
+  AuthenticatedXPremiumRoute: AuthenticatedXPremiumRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
