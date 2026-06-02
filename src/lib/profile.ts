@@ -35,7 +35,11 @@ export async function healProfile(user: User, walletAddress?: string | null): Pr
 
   if (existing) {
     // backfill auth_user_id / address if missing
-    const patch: Record<string, any> = {};
+    const patch: {
+      auth_user_id?: string;
+      email?: string;
+      address?: string;
+    } = {};
     if (!existing.auth_user_id) patch.auth_user_id = user.id;
     if (!existing.email && email) patch.email = email;
     if (!existing.address && address) patch.address = address;
