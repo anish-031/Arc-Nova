@@ -14,16 +14,205 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+          type: Database["public"]["Enums"]["product_type"]
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          price?: number
+          type: Database["public"]["Enums"]["product_type"]
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price?: number
+          type?: Database["public"]["Enums"]["product_type"]
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          buyer_email: string
+          confirmed_at: string | null
+          created_at: string
+          custom_uid: string | null
+          custom_username: string | null
+          id: string
+          item_details: Json | null
+          price: number
+          product_id: string | null
+          product_name: string
+          product_type: Database["public"]["Enums"]["product_type"]
+          status: Database["public"]["Enums"]["purchase_status"]
+          tx_hash: string | null
+          user_id: string | null
+        }
+        Insert: {
+          buyer_email: string
+          confirmed_at?: string | null
+          created_at?: string
+          custom_uid?: string | null
+          custom_username?: string | null
+          id?: string
+          item_details?: Json | null
+          price?: number
+          product_id?: string | null
+          product_name: string
+          product_type: Database["public"]["Enums"]["product_type"]
+          status?: Database["public"]["Enums"]["purchase_status"]
+          tx_hash?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          buyer_email?: string
+          confirmed_at?: string | null
+          created_at?: string
+          custom_uid?: string | null
+          custom_username?: string | null
+          id?: string
+          item_details?: Json | null
+          price?: number
+          product_id?: string | null
+          product_name?: string
+          product_type?: Database["public"]["Enums"]["product_type"]
+          status?: Database["public"]["Enums"]["purchase_status"]
+          tx_hash?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quests: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          max_progress: number
+          quest_id: string
+          title: string
+          xp_reward: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          max_progress?: number
+          quest_id: string
+          title: string
+          xp_reward?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          max_progress?: number
+          quest_id?: string
+          title?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          address: string | null
+          auth_user_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          invites: number
+          level: number
+          streak: number
+          updated_at: string
+          username: string | null
+          xp: number
+        }
+        Insert: {
+          address?: string | null
+          auth_user_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          invites?: number
+          level?: number
+          streak?: number
+          updated_at?: string
+          username?: string | null
+          xp?: number
+        }
+        Update: {
+          address?: string | null
+          auth_user_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          invites?: number
+          level?: number
+          streak?: number
+          updated_at?: string
+          username?: string | null
+          xp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      product_type: "x-premium" | "topup" | "marketplace"
+      purchase_status: "pending" | "success" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +339,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      product_type: ["x-premium", "topup", "marketplace"],
+      purchase_status: ["pending", "success", "failed"],
+    },
   },
 } as const
