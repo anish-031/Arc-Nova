@@ -16,7 +16,6 @@ import { Route as AuthenticatedXPremiumRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTopupRouteImport } from './routes/_authenticated/topup'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
-import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
 import { Route as AuthenticatedRewardsRouteImport } from './routes/_authenticated/rewards'
 import { Route as AuthenticatedQuestsRouteImport } from './routes/_authenticated/quests'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
@@ -58,11 +57,6 @@ const AuthenticatedTopupRoute = AuthenticatedTopupRouteImport.update({
 const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
   id: '/tools',
   path: '/tools',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedStoreRoute = AuthenticatedStoreRouteImport.update({
-  id: '/store',
-  path: '/store',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRewardsRoute = AuthenticatedRewardsRouteImport.update({
@@ -119,7 +113,6 @@ export interface FileRoutesByFullPath {
   '/orders': typeof AuthenticatedOrdersRoute
   '/quests': typeof AuthenticatedQuestsRoute
   '/rewards': typeof AuthenticatedRewardsRoute
-  '/store': typeof AuthenticatedStoreRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -136,7 +129,6 @@ export interface FileRoutesByTo {
   '/orders': typeof AuthenticatedOrdersRoute
   '/quests': typeof AuthenticatedQuestsRoute
   '/rewards': typeof AuthenticatedRewardsRoute
-  '/store': typeof AuthenticatedStoreRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -155,7 +147,6 @@ export interface FileRoutesById {
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/quests': typeof AuthenticatedQuestsRoute
   '/_authenticated/rewards': typeof AuthenticatedRewardsRoute
-  '/_authenticated/store': typeof AuthenticatedStoreRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
   '/_authenticated/topup': typeof AuthenticatedTopupRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
@@ -174,7 +165,6 @@ export interface FileRouteTypes {
     | '/orders'
     | '/quests'
     | '/rewards'
-    | '/store'
     | '/tools'
     | '/topup'
     | '/wallet'
@@ -191,7 +181,6 @@ export interface FileRouteTypes {
     | '/orders'
     | '/quests'
     | '/rewards'
-    | '/store'
     | '/tools'
     | '/topup'
     | '/wallet'
@@ -209,7 +198,6 @@ export interface FileRouteTypes {
     | '/_authenticated/orders'
     | '/_authenticated/quests'
     | '/_authenticated/rewards'
-    | '/_authenticated/store'
     | '/_authenticated/tools'
     | '/_authenticated/topup'
     | '/_authenticated/wallet'
@@ -271,13 +259,6 @@ declare module '@tanstack/react-router' {
       path: '/tools'
       fullPath: '/tools'
       preLoaderRoute: typeof AuthenticatedToolsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/store': {
-      id: '/_authenticated/store'
-      path: '/store'
-      fullPath: '/store'
-      preLoaderRoute: typeof AuthenticatedStoreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/rewards': {
@@ -348,7 +329,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedQuestsRoute: typeof AuthenticatedQuestsRoute
   AuthenticatedRewardsRoute: typeof AuthenticatedRewardsRoute
-  AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
   AuthenticatedTopupRoute: typeof AuthenticatedTopupRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
@@ -364,7 +344,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedQuestsRoute: AuthenticatedQuestsRoute,
   AuthenticatedRewardsRoute: AuthenticatedRewardsRoute,
-  AuthenticatedStoreRoute: AuthenticatedStoreRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
   AuthenticatedTopupRoute: AuthenticatedTopupRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
@@ -382,3 +361,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
