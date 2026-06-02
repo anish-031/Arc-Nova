@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedXPremiumRouteImport } from './routes/_authenticated/x-premium'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTopupRouteImport } from './routes/_authenticated/topup'
+import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -49,6 +50,11 @@ const AuthenticatedTopupRoute = AuthenticatedTopupRouteImport.update({
   path: '/topup',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStoreRoute = AuthenticatedStoreRouteImport.update({
   id: '/store',
   path: '/store',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/store': typeof AuthenticatedStoreRoute
+  '/tools': typeof AuthenticatedToolsRoute
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/x-premium': typeof AuthenticatedXPremiumRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/store': typeof AuthenticatedStoreRoute
+  '/tools': typeof AuthenticatedToolsRoute
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/x-premium': typeof AuthenticatedXPremiumRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/store': typeof AuthenticatedStoreRoute
+  '/_authenticated/tools': typeof AuthenticatedToolsRoute
   '/_authenticated/topup': typeof AuthenticatedTopupRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/_authenticated/x-premium': typeof AuthenticatedXPremiumRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/orders'
     | '/store'
+    | '/tools'
     | '/topup'
     | '/wallet'
     | '/x-premium'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/orders'
     | '/store'
+    | '/tools'
     | '/topup'
     | '/wallet'
     | '/x-premium'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/orders'
     | '/_authenticated/store'
+    | '/_authenticated/tools'
     | '/_authenticated/topup'
     | '/_authenticated/wallet'
     | '/_authenticated/x-premium'
@@ -192,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTopupRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tools': {
+      id: '/_authenticated/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof AuthenticatedToolsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/store': {
       id: '/_authenticated/store'
       path: '/store'
@@ -228,6 +247,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
+  AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
   AuthenticatedTopupRoute: typeof AuthenticatedTopupRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedXPremiumRoute: typeof AuthenticatedXPremiumRoute
@@ -238,6 +258,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedStoreRoute: AuthenticatedStoreRoute,
+  AuthenticatedToolsRoute: AuthenticatedToolsRoute,
   AuthenticatedTopupRoute: AuthenticatedTopupRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedXPremiumRoute: AuthenticatedXPremiumRoute,
