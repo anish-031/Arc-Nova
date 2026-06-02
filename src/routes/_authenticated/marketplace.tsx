@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Search, Star, Gift } from "lucide-react";
 import { payUSD } from "@/lib/pay";
+import { recordVerifiedPurchase } from "@/lib/purchases.functions";
 
 export const Route = createFileRoute("/_authenticated/marketplace")({
   head: () => ({ meta: [{ title: "Gift Card Marketplace — ARC NOVA" }] }),
@@ -119,6 +120,7 @@ function CardTile({ c, onClick }: { c: Card; onClick: () => void }) {
 function BuyModal({ card, user, onClose }: { card: Card; user: { id: string; email?: string }; onClose: () => void }) {
   const [amount, setAmount] = useState<number>(card.min);
   const [busy, setBusy] = useState(false);
+  const record = useServerFn(recordVerifiedPurchase);
   const final = amount - (amount * card.off) / 100;
 
   async function buy(e: React.FormEvent) {
@@ -128,17 +130,15 @@ function BuyModal({ card, user, onClose }: { card: Card; user: { id: string; ema
     }
     setBusy(true);
     try {
-      const hash = await payUSD(final);
-      const { error } = await supabase.from("purchases").insert({
-        user_id: user.id, buyer_email: user.email ?? "",
-        product_type: "marketplace",
-        product_name: `${card.name} Gift Card $${amount}`,
-        price: final, tx_hash: hash,
-        item_details: { card: card.id, face_value: amount, discount: card.off },
-        status: "pending",
-      });
-      if (error) throw error;
-      toast.success("Payment confirmed — pending delivery");
+      const { hash, valueWei } = await payUSD(final);
+      await record({ data: {
+        txHash: hash, expectedValueWei: valueWei,
+        productType: "marketplace",
+        productName: `${card.name} Gift Card $${amount}`,
+        priceUsd: final,
+        itemDetails: { card: card.id, face_value: amount, discount: card.off },
+      } });
+      toast.success("Payment verified on-chain — pending delivery");
       onClose();
     } catch (e: unknown) {
       toast.error((e as Error).message ?? "Payment failed");
