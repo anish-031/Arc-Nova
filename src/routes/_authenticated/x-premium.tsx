@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Twitter, Crown, Check, Sparkles } from "lucide-react";
 import { payUSD } from "@/lib/pay";
+import { recordVerifiedPurchase } from "@/lib/purchases.functions";
 
 export const Route = createFileRoute("/_authenticated/x-premium")({
   head: () => ({ meta: [{ title: "X Premium — ARC NOVA" }] }),
@@ -81,25 +82,21 @@ function PlanCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
 function CheckoutModal({ plan, user, onClose }: { plan: Plan; user: { id: string; email?: string }; onClose: () => void }) {
   const [username, setUsername] = useState("");
   const [busy, setBusy] = useState(false);
+  const record = useServerFn(recordVerifiedPurchase);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!username.trim()) { toast.error("Enter your X username"); return; }
     setBusy(true);
     try {
-      const hash = await payUSD(plan.price);
-      const { error } = await supabase.from("purchases").insert({
-        user_id: user.id,
-        buyer_email: user.email ?? "",
-        product_type: "x-premium",
-        product_name: `X ${plan.tier} (${plan.duration})`,
-        price: plan.price,
-        tx_hash: hash,
-        custom_username: username.trim(),
-        status: "pending",
-      });
-      if (error) throw error;
-      toast.success("Payment confirmed — pending admin delivery");
+      const { hash, valueWei } = await payUSD(plan.price);
+      await record({ data: {
+        txHash: hash, expectedValueWei: valueWei,
+        productType: "x-premium",
+        productName: `X ${plan.tier} (${plan.duration})`,
+        priceUsd: plan.price, customUsername: username.trim(),
+      } });
+      toast.success("Payment verified on-chain — pending admin delivery");
       onClose();
     } catch (e: unknown) {
       toast.error((e as Error).message ?? "Payment failed");

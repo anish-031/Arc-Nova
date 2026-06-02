@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { payUSD } from "@/lib/pay";
+import { recordVerifiedPurchase } from "@/lib/purchases.functions";
 
 export const Route = createFileRoute("/_authenticated/topup")({
   head: () => ({ meta: [{ title: "Game Top-Up — ARC NOVA" }] }),
@@ -29,11 +30,11 @@ const GAMES: Game[] = [
 const AMOUNTS = [5, 10, 25, 50, 100];
 
 function TopUpPage() {
-  const { user } = Route.useRouteContext();
   const [game, setGame] = useState<Game>(GAMES[0]);
   const [amount, setAmount] = useState<number>(25);
   const [uid, setUid] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const record = useServerFn(recordVerifiedPurchase);
 
   const receive = useMemo(() => amount * game.rate, [amount, game.rate]);
 
@@ -42,20 +43,15 @@ function TopUpPage() {
     if (!uid.trim()) { toast.error("Enter your in-game UID"); return; }
     setSubmitting(true);
     try {
-      const hash = await payUSD(amount);
-      const { error } = await supabase.from("purchases").insert({
-        user_id: user.id,
-        buyer_email: user.email ?? "",
-        product_type: "topup",
-        product_name: `${game.name} — ${receive.toLocaleString()} ${game.currency}`,
-        price: amount,
-        tx_hash: hash,
-        custom_uid: uid.trim(),
-        item_details: { game: game.id, currency: game.currency, quantity: receive },
-        status: "pending",
-      });
-      if (error) throw error;
-      toast.success("Payment confirmed — pending admin delivery");
+      const { hash, valueWei } = await payUSD(amount);
+      await record({ data: {
+        txHash: hash, expectedValueWei: valueWei,
+        productType: "topup",
+        productName: `${game.name} — ${receive.toLocaleString()} ${game.currency}`,
+        priceUsd: amount, customUid: uid.trim(),
+        itemDetails: { game: game.id, currency: game.currency, quantity: receive },
+      } });
+      toast.success("Payment verified on-chain — pending admin delivery");
       setUid("");
     } catch (e: unknown) {
       toast.error((e as { message?: string }).message ?? "Payment failed");
