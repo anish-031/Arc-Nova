@@ -61,7 +61,7 @@ function OrdersPage() {
                 o.status === "success" ? "border-success/40 text-success" :
                 o.status === "failed" ? "border-destructive/40 text-destructive" :
                 "border-warning/40 text-warning"
-              }`}>{o.status === "pending" ? "Pending" : o.status}</span>
+              }`}>{o.status === "pending" ? "Pending" : o.status === "success" ? "Fulfilled" : o.status}</span>
             </div>
           </div>
         ))}
