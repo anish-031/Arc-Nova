@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { payUSD } from "@/lib/pay";
 
 export const Route = createFileRoute("/_authenticated/topup")({
   head: () => ({ meta: [{ title: "Game Top-Up — ARC NOVA" }] }),
@@ -32,36 +33,32 @@ function TopUpPage() {
   const [game, setGame] = useState<Game>(GAMES[0]);
   const [amount, setAmount] = useState<number>(25);
   const [uid, setUid] = useState("");
-  const [txHash, setTxHash] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const receive = useMemo(() => amount * game.rate, [amount, game.rate]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!uid.trim()) {
-      toast.error("Enter your in-game UID");
-      return;
-    }
+    if (!uid.trim()) { toast.error("Enter your in-game UID"); return; }
     setSubmitting(true);
     try {
+      const hash = await payUSD(amount);
       const { error } = await supabase.from("purchases").insert({
         user_id: user.id,
         buyer_email: user.email ?? "",
         product_type: "topup",
         product_name: `${game.name} — ${receive.toLocaleString()} ${game.currency}`,
         price: amount,
-        tx_hash: txHash || null,
+        tx_hash: hash,
         custom_uid: uid.trim(),
         item_details: { game: game.id, currency: game.currency, quantity: receive },
         status: "pending",
       });
       if (error) throw error;
-      toast.success("Top-Up requested — pending admin confirmation");
+      toast.success("Payment confirmed — pending admin delivery");
       setUid("");
-      setTxHash("");
     } catch (e: unknown) {
-      toast.error((e as { message?: string }).message ?? "Failed to place order");
+      toast.error((e as { message?: string }).message ?? "Payment failed");
     } finally {
       setSubmitting(false);
     }
@@ -139,22 +136,11 @@ function TopUpPage() {
             <Row k="Pay" v={`$${amount} USDC`} highlight />
           </div>
 
-          <div>
-            <label className="block text-xs font-display tracking-widest text-muted-foreground mb-2">TX HASH (OPTIONAL)</label>
-            <input
-              value={txHash}
-              onChange={(e) => setTxHash(e.target.value)}
-              placeholder="0x…"
-              maxLength={120}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary"
-            />
-          </div>
-
           <button
             disabled={submitting}
             className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-primary/30"
           >
-            ⚡ {submitting ? "Placing…" : "Top Up Now"}
+            ⚡ {submitting ? "Confirming…" : "Pay & Top Up"}
           </button>
         </form>
       </div>
