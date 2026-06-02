@@ -84,7 +84,7 @@ export const recordVerifiedPurchase = createServerFn({ method: "POST" })
       tx_hash: data.txHash,
       custom_uid: data.customUid ?? null,
       custom_username: data.customUsername ?? null,
-      item_details: data.itemDetails ?? null,
+      item_details: (data.itemDetails ?? null) as never,
       status: "pending",
     }).select("id").single();
     if (error) throw new Error(error.message);
