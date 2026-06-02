@@ -29,7 +29,6 @@ const NAV = [
   { to: "/tools", label: "ArcTools", Icon: Wrench },
   { to: "/memes", label: "MemeVault", Icon: Rocket },
   { to: "/leaderboard", label: "Leaderboard", Icon: Trophy },
-  { to: "/store", label: "Store", Icon: ShoppingBag },
   { to: "/orders", label: "Orders", Icon: ShoppingBag },
 ] as const;
 
