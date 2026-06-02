@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Gift, Flame, Sparkles } from "lucide-react";
+import { Gift } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/rewards")({
@@ -9,70 +9,132 @@ export const Route = createFileRoute("/_authenticated/rewards")({
   component: RewardsPage,
 });
 
-const REWARDS = [
-  { id: "daily", title: "Daily Check-In", xp: 50, cooldown: 24, Icon: Flame, color: "from-orange-500 to-red-600" },
-  { id: "weekly", title: "Weekly Streak Bonus", xp: 500, cooldown: 168, Icon: Sparkles, color: "from-purple-500 to-pink-600" },
-  { id: "milestone", title: "Milestone Bonus", xp: 1000, cooldown: 720, Icon: Gift, color: "from-blue-500 to-cyan-600" },
+const BADGES = [
+  { id: "top", name: "TOP NOVA", threshold: 1_000 },
+  { id: "super", name: "SUPER NOVA", threshold: 10_000 },
+  { id: "master", name: "MASTER NOVA", threshold: 100_000 },
+  { id: "champion", name: "CHAMPION NOVA", threshold: 1_000_000 },
 ];
+
+// 10,000 XP = $0.10 USDC → 100,000 XP = $1 USDC
+const XP_PER_USDC = 100_000;
+const MIN_CONVERT = 100_000;
 
 function RewardsPage() {
   const { user } = Route.useRouteContext();
-  const [last, setLast] = useState<Record<string, number>>({});
-  const [now, setNow] = useState(Date.now());
+  const [xp, setXp] = useState(0);
+  const [claimed, setClaimed] = useState<Set<string>>(new Set());
+  const [convertAmt, setConvertAmt] = useState(MIN_CONVERT);
+  const [busy, setBusy] = useState(false);
 
+  async function load() {
+    const { data } = await supabase.from("users").select("id,xp").eq("auth_user_id", user.id).maybeSingle();
+    setXp(Number(data?.xp ?? 0));
+  }
   useEffect(() => {
-    const raw = localStorage.getItem(`rewards:${user.id}`);
-    if (raw) setLast(JSON.parse(raw));
-    const t = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(t);
+    load();
+    const raw = localStorage.getItem(`badges:${user.id}`);
+    if (raw) setClaimed(new Set(JSON.parse(raw)));
   }, [user.id]);
 
-  async function claim(r: typeof REWARDS[number]) {
-    const since = now - (last[r.id] ?? 0);
-    if (since < r.cooldown * 3600_000) {
-      toast.error("Not yet — check back later");
-      return;
-    }
-    const { data: prof } = await supabase.from("users").select("id,xp,level,streak").eq("auth_user_id", user.id).maybeSingle();
-    if (!prof) return;
-    const newXp = Number(prof.xp) + r.xp;
-    const newLevel = Math.max(prof.level, Math.floor(newXp / 1000) + 1);
-    const newStreak = r.id === "daily" ? prof.streak + 1 : prof.streak;
-    await supabase.from("users").update({ xp: newXp, level: newLevel, streak: newStreak }).eq("id", prof.id);
-    const next = { ...last, [r.id]: now };
-    setLast(next);
-    localStorage.setItem(`rewards:${user.id}`, JSON.stringify(next));
-    toast.success(`+${r.xp} XP claimed`);
+  function claim(b: typeof BADGES[number]) {
+    if (xp < b.threshold) { toast.error("Not enough XP"); return; }
+    if (claimed.has(b.id)) return;
+    const next = new Set(claimed); next.add(b.id);
+    setClaimed(next);
+    localStorage.setItem(`badges:${user.id}`, JSON.stringify([...next]));
+    toast.success(`${b.name} badge claimed!`);
   }
+
+  async function convert() {
+    if (convertAmt < MIN_CONVERT) { toast.error(`Minimum is ${MIN_CONVERT.toLocaleString()} XP`); return; }
+    if (convertAmt > xp) { toast.error("Not enough XP"); return; }
+    setBusy(true);
+    try {
+      const { data: prof } = await supabase.from("users").select("id,xp").eq("auth_user_id", user.id).maybeSingle();
+      if (!prof) throw new Error("Profile not found");
+      const newXp = Math.max(0, Number(prof.xp) - convertAmt);
+      const { error } = await supabase.from("users").update({ xp: newXp }).eq("id", prof.id);
+      if (error) throw error;
+      const usdc = convertAmt / XP_PER_USDC;
+      await supabase.from("purchases").insert({
+        user_id: user.id, buyer_email: user.email ?? "",
+        product_type: "marketplace", product_name: `XP Conversion → ${usdc} USDC`,
+        price: -usdc, item_details: { xp_spent: convertAmt, usdc_credit: usdc }, status: "pending",
+      });
+      toast.success(`Converted to ${usdc} USDC — pending admin payout`);
+      load();
+    } catch (e: unknown) { toast.error((e as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  const usdcEarned = convertAmt / XP_PER_USDC;
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-10">
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2"><Gift className="text-accent" /> RewardHub</h1>
-        <p className="text-muted-foreground">Claim recurring rewards to grow your XP and streak.</p>
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2"><Gift className="text-accent w-6 h-6" /> Reward Hub</h1>
+          <p className="text-muted-foreground text-sm mt-1">New Nova Badges — automatically awarded at thresholds</p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-muted-foreground">Total XP</p>
+          <p className="text-2xl font-bold text-neon">{xp.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">≈ ${(xp / XP_PER_USDC).toFixed(4)} <span className="opacity-60">(10k XP = $0.1)</span></p>
+        </div>
       </div>
 
-      <div className="mt-8 grid md:grid-cols-3 gap-4">
-        {REWARDS.map((r) => {
-          const since = now - (last[r.id] ?? 0);
-          const ready = since >= r.cooldown * 3600_000;
-          const hoursLeft = Math.max(0, r.cooldown - since / 3600_000);
+      <div className="mt-8 space-y-3">
+        {BADGES.map((b) => {
+          const pct = Math.min(100, (xp / b.threshold) * 100);
+          const ready = xp >= b.threshold;
+          const isClaimed = claimed.has(b.id);
           return (
-            <div key={r.id} className={`relative overflow-hidden panel border border-zinc-800 rounded-xl p-6`}>
-              <div className={`absolute -top-12 -right-12 w-40 h-40 rounded-full bg-gradient-to-br ${r.color} opacity-20 blur-2xl`} />
-              <r.Icon className="w-7 h-7 text-neon" />
-              <h3 className="text-lg font-bold mt-3">{r.title}</h3>
-              <p className="text-3xl font-bold text-neon mt-3">+{r.xp} XP</p>
-              <p className="text-xs text-muted-foreground mt-1">{ready ? "Ready to claim" : `Cooldown: ${hoursLeft.toFixed(1)}h left`}</p>
-              <button onClick={() => claim(r)} disabled={!ready}
-                className={`mt-5 w-full py-2.5 rounded-lg font-medium transition-opacity ${
-                  ready ? "bg-gradient-to-r from-primary to-accent text-white" : "bg-zinc-900 border border-zinc-800 text-muted-foreground"
+            <div key={b.id} className="panel border border-zinc-800 rounded-xl p-5 flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold tracking-wider">{b.name}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Requires {b.threshold.toLocaleString()} XP</p>
+                <div className="mt-2 h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-primary to-accent" style={{ width: `${pct}%` }} />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{pct.toFixed(0)}% of goal</p>
+              </div>
+              <button onClick={() => claim(b)} disabled={!ready || isClaimed}
+                className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium border ${
+                  isClaimed ? "border-success/40 text-success bg-success/10"
+                  : ready ? "border-primary text-neon bg-primary/10 hover:bg-primary/20"
+                  : "border-zinc-800 text-muted-foreground bg-zinc-900 cursor-not-allowed"
                 }`}>
-                {ready ? "Claim" : "Locked"}
+                {isClaimed ? "Claimed" : "Claim Badge"}
               </button>
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-8 panel border border-zinc-800 rounded-xl p-6">
+        <h3 className="font-bold">Convert XP to USDC</h3>
+        <div className="mt-5 grid md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-xs text-muted-foreground">Current balance</p>
+            <p className="text-2xl font-bold mt-1">{xp.toLocaleString()} XP</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Approx. {(xp / XP_PER_USDC).toFixed(6)} USDC</p>
+          </div>
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">XP to convert</label>
+            <input type="number" min={MIN_CONVERT} step={MIN_CONVERT} value={convertAmt}
+              onChange={(e) => setConvertAmt(Number(e.target.value))}
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary" />
+            <p className="text-xs text-muted-foreground mt-1">Rate: 100,000 XP = 1 USDC. Minimum conversion amount is 100,000 XP.</p>
+          </div>
+        </div>
+        <div className="mt-5 flex items-center justify-between flex-wrap gap-3 pt-4 border-t border-zinc-800">
+          <p className="text-sm text-muted-foreground">You will receive <span className="text-neon font-semibold">{usdcEarned.toFixed(6)} USDC</span> for {convertAmt.toLocaleString()} XP.</p>
+          <button onClick={convert} disabled={busy || convertAmt < MIN_CONVERT || convertAmt > xp}
+            className="px-5 py-2 rounded-lg border border-primary text-neon bg-primary/10 hover:bg-primary/20 text-sm font-medium disabled:opacity-50">
+            {busy ? "Converting…" : "Convert XP"}
+          </button>
+        </div>
       </div>
     </main>
   );
