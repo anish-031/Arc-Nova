@@ -11,7 +11,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 const TREASURY_ADDRESS = "0x000000000000000000000000000000000000dEaD";
-const DEFAULT_RPC = "https://rpc.arc.network";
+// Arc Testnet primary RPC (https://docs.arc.io/arc/references/connect-to-arc).
+const DEFAULT_RPC = "https://rpc.testnet.arc.network";
 
 const Input = z.object({
   txHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
