@@ -1,19 +1,21 @@
 /**
- * Arc Network wallet connect (EIP-1193 / window.ethereum).
- * Used to attach `address` to the user profile.
- *
- * Arc Network parameters (per Circle's Arc L1, mainnet placeholder values
- * — replace if the user has different RPC/chainId):
+ * Arc Testnet wallet connect (EIP-1193 / window.ethereum).
+ * Network parameters per https://docs.arc.io/arc/references/connect-to-arc
+ *  - Chain ID:  5042002 (0x4cf612)
+ *  - Currency:  USDC (native gas token, 18 decimals)
+ *  - RPC:       https://rpc.testnet.arc.network
+ *  - Explorer:  https://testnet.arcscan.app
  */
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ARC_TESTNET } from "@/lib/arc";
 
 export const ARC_NETWORK = {
-  chainId: "0x504", // 1284 placeholder — set to real Arc chainId when available
-  chainName: "Arc Network",
-  nativeCurrency: { name: "ARC", symbol: "ARC", decimals: 18 },
-  rpcUrls: ["https://rpc.arc.network"],
-  blockExplorerUrls: ["https://explorer.arc.network"],
+  chainId: ARC_TESTNET.chainIdHex,
+  chainName: ARC_TESTNET.name,
+  nativeCurrency: ARC_TESTNET.currency,
+  rpcUrls: [ARC_TESTNET.rpcUrl],
+  blockExplorerUrls: [ARC_TESTNET.explorer],
 };
 
 type Eth = {
