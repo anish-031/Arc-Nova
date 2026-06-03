@@ -27,7 +27,9 @@ const GAMES: Game[] = [
   { id: "cod", name: "COD Mobile", currency: "CP", icon: "🎮", gradient: "from-zinc-600 to-zinc-800", rate: 85 },
 ];
 
-const AMOUNTS = [5, 10, 25, 50, 100];
+const AMOUNTS_DEFAULT = [5, 10, 25, 50, 100];
+const AMOUNTS_FREEFIRE = [1, 5, 10, 25, 50, 100];
+
 
 function TopUpPage() {
   const [game, setGame] = useState<Game>(GAMES[0]);
