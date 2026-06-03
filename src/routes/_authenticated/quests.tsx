@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, Twitter, Wallet as WalletIcon, MessageCircle, Zap, Link as LinkIcon, Check } from "lucide-react";
+import { Clock, Twitter, Wallet as WalletIcon, Zap, Link as LinkIcon, Check, Gamepad2, Crown, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { useWallet } from "@/hooks/use-wallet";
 
@@ -10,11 +10,13 @@ export const Route = createFileRoute("/_authenticated/quests")({
   component: QuestsPage,
 });
 
-type Category = "daily" | "social" | "onchain";
+type Category = "daily" | "social" | "onchain" | "purchase";
 type Quest = {
   id: string; title: string; desc: string; xp: number;
   category: Category; cta: string; href?: string;
   Icon: typeof Clock; auto?: boolean;
+  /** product_type in `purchases` that satisfies this quest */
+  requiresPurchaseType?: "topup" | "x-premium" | "marketplace";
 };
 
 const QUESTS: Quest[] = [
@@ -24,17 +26,22 @@ const QUESTS: Quest[] = [
     xp: 100, category: "social", cta: "Follow Arc on X", href: "https://x.com/arc", Icon: Twitter },
   { id: "follow-arcnova", title: "Follow ArcNova on X", desc: "Follow @arc__nova on X to stay connected with the ArcNova community.",
     xp: 100, category: "social", cta: "Follow ArcNova on X", href: "https://x.com/arc__nova", Icon: Twitter },
-  { id: "join-discord", title: "Join Discord", desc: "Join the ARC NOVA Discord server and chat with the community.",
-    xp: 200, category: "social", cta: "Join Discord", href: "https://discord.gg/", Icon: MessageCircle },
   { id: "connect-wallet", title: "Connect Wallet", desc: "Connect your Web3 wallet to Arc Testnet.",
     xp: 200, category: "onchain", cta: "Connect Wallet", Icon: WalletIcon },
   { id: "first-tx", title: "First Transaction", desc: "Send your first on-chain transaction on Arc Testnet.",
     xp: 500, category: "onchain", cta: "Open Wallet", href: "/wallet", Icon: Zap },
+  { id: "buy-topup", title: "Buy a Game Top-Up", desc: "Purchase any product from the Games Top-Up section.",
+    xp: 300, category: "purchase", cta: "Open Top-Up", href: "/topup", Icon: Gamepad2, requiresPurchaseType: "topup" },
+  { id: "buy-xpremium", title: "Subscribe to X Premium", desc: "Buy any X Premium plan to unlock this quest.",
+    xp: 400, category: "purchase", cta: "Open X Premium", href: "/x-premium", Icon: Crown, requiresPurchaseType: "x-premium" },
+  { id: "buy-marketplace", title: "Buy from Marketplace", desc: "Purchase any item from the Marketplace.",
+    xp: 300, category: "purchase", cta: "Open Marketplace", href: "/marketplace", Icon: ShoppingBag, requiresPurchaseType: "marketplace" },
 ];
 
 const TABS: Array<{ id: "all" | Category; label: string }> = [
   { id: "all", label: "All" }, { id: "daily", label: "Daily" },
   { id: "social", label: "Social" }, { id: "onchain", label: "Onchain" },
+  { id: "purchase", label: "Purchases" },
 ];
 
 function QuestsPage() {
@@ -42,10 +49,22 @@ function QuestsPage() {
   const { address } = useWallet();
   const [tab, setTab] = useState<"all" | Category>("all");
   const [claimed, setClaimed] = useState<Set<string>>(new Set());
+  const [purchasedTypes, setPurchasedTypes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const raw = localStorage.getItem(`quests:${user.id}`);
     if (raw) setClaimed(new Set(JSON.parse(raw)));
+  }, [user.id]);
+
+  // Pull the user's verified purchases so quest progress reflects real data.
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("purchases")
+        .select("product_type")
+        .eq("user_id", user.id);
+      if (data) setPurchasedTypes(new Set(data.map((r) => r.product_type as string)));
+    })();
   }, [user.id]);
 
   const visible = useMemo(() => tab === "all" ? QUESTS : QUESTS.filter(q => q.category === tab), [tab]);
@@ -53,9 +72,19 @@ function QuestsPage() {
   const earnedXp = QUESTS.filter(q => claimed.has(q.id)).reduce((s, q) => s + q.xp, 0);
   const doneCount = claimed.size;
 
+  function isEligible(q: Quest): boolean {
+    if (q.id === "connect-wallet") return !!address;
+    if (q.requiresPurchaseType) return purchasedTypes.has(q.requiresPurchaseType);
+    return true;
+  }
+
   async function claim(q: Quest) {
     if (claimed.has(q.id)) return;
     if (q.id === "connect-wallet" && !address) { toast.error("Connect your wallet first"); return; }
+    if (q.requiresPurchaseType && !purchasedTypes.has(q.requiresPurchaseType)) {
+      toast.error("Complete a real purchase first — XP unlocks after payment is verified on-chain");
+      return;
+    }
     const { data: prof } = await supabase.from("users").select("id,xp,level").eq("auth_user_id", user.id).maybeSingle();
     if (!prof) { toast.error("Profile not ready"); return; }
     const newXp = Number(prof.xp) + q.xp;
@@ -93,7 +122,7 @@ function QuestsPage() {
         <span className="px-3 py-1.5 rounded-lg bg-primary/15 text-neon text-sm font-semibold whitespace-nowrap">⚡ {earnedXp} XP</span>
       </div>
 
-      <div className="mt-6 grid grid-cols-4 border-b border-zinc-800">
+      <div className="mt-6 grid grid-cols-5 border-b border-zinc-800">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`py-3 text-sm font-medium border-b-2 transition-colors ${
@@ -105,7 +134,8 @@ function QuestsPage() {
       <div className="mt-6 space-y-3">
         {visible.map((q) => {
           const done = claimed.has(q.id);
-          const pct = done ? 100 : 0;
+          const eligible = isEligible(q);
+          const pct = done ? 100 : eligible ? 50 : 0;
           return (
             <div key={q.id} className="panel border border-zinc-800 rounded-xl p-5">
               <div className="flex items-start gap-4">
@@ -132,6 +162,16 @@ function QuestsPage() {
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-success/40 bg-success/10 text-success text-sm">
                         <Check className="w-4 h-4" /> Completed
                       </span>
+                    ) : q.requiresPurchaseType && !eligible && q.href ? (
+                      <a href={q.href}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-zinc-700 bg-zinc-900 text-muted-foreground text-sm hover:border-zinc-600">
+                        <q.Icon className="w-4 h-4" /> {q.cta}
+                      </a>
+                    ) : q.requiresPurchaseType && eligible ? (
+                      <button onClick={() => claim(q)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-success/40 bg-success/10 text-success text-sm hover:bg-success/20">
+                        <Check className="w-4 h-4" /> Claim {q.xp} XP
+                      </button>
                     ) : q.href ? (
                       <a href={q.href} target={q.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer"
                         onClick={() => setTimeout(() => claim(q), 800)}

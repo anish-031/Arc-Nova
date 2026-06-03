@@ -27,7 +27,9 @@ const GAMES: Game[] = [
   { id: "cod", name: "COD Mobile", currency: "CP", icon: "🎮", gradient: "from-zinc-600 to-zinc-800", rate: 85 },
 ];
 
-const AMOUNTS = [5, 10, 25, 50, 100];
+const AMOUNTS_DEFAULT = [5, 10, 25, 50, 100];
+const AMOUNTS_FREEFIRE = [1, 5, 10, 25, 50, 100];
+
 
 function TopUpPage() {
   const [game, setGame] = useState<Game>(GAMES[0]);
@@ -108,8 +110,8 @@ function TopUpPage() {
 
           <div>
             <label className="block text-xs font-display tracking-widest text-muted-foreground mb-2">AMOUNT (USDC)</label>
-            <div className="grid grid-cols-5 gap-2">
-              {AMOUNTS.map((a) => (
+            <div className={`grid gap-2 ${game.id === "freefire" ? "grid-cols-6" : "grid-cols-5"}`}>
+              {(game.id === "freefire" ? AMOUNTS_FREEFIRE : AMOUNTS_DEFAULT).map((a: number) => (
                 <button
                   key={a}
                   type="button"
