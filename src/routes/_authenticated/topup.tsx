@@ -110,8 +110,8 @@ function TopUpPage() {
 
           <div>
             <label className="block text-xs font-display tracking-widest text-muted-foreground mb-2">AMOUNT (USDC)</label>
-            <div className="grid grid-cols-5 gap-2">
-              {AMOUNTS.map((a) => (
+            <div className={`grid gap-2 ${game.id === "freefire" ? "grid-cols-6" : "grid-cols-5"}`}>
+              {(game.id === "freefire" ? AMOUNTS_FREEFIRE : AMOUNTS_DEFAULT).map((a: number) => (
                 <button
                   key={a}
                   type="button"
