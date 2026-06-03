@@ -1,25 +1,61 @@
 /**
- * Real on-chain payment helper.
+ * Real on-chain payment helper for Arc Testnet.
+ *
+ * Arc Testnet uses USDC as the native gas token (18 decimals). A native
+ * `eth_sendTransaction` therefore moves USDC directly — no ERC-20 call needed.
  *
  * Flow:
- *  1. Prompt the connected wallet (EIP-1193) to send a native ARC transfer
- *     to TREASURY_ADDRESS for the USD-equivalent amount.
- *  2. Poll `eth_getTransactionReceipt` until the tx is mined and `status=0x1`.
- *  3. Return { hash, valueWei } so callers can pass them to the server-side
- *     verification + record fn.
+ *  1. Ensure the wallet is on Arc Testnet (add/switch chain if needed).
+ *  2. Prompt the wallet to send USDC (native value) to TREASURY_ADDRESS.
+ *  3. Poll `eth_getTransactionReceipt` until the tx is mined and `status=0x1`.
+ *  4. Return { hash, valueWei } for server-side verification.
  */
 import { toast } from "sonner";
+import { ARC_TESTNET, USDC_DECIMALS } from "./arc";
 
+/**
+ * Treasury address that receives buyer payments on Arc Testnet.
+ * TODO: replace with a wallet you control before going live.
+ */
 export const TREASURY_ADDRESS = "0x000000000000000000000000000000000000dEaD";
-// 1 USD = 0.001 ARC on testnet (so $5 = 0.005 ARC) — adjust as needed.
-export const USD_TO_ARC_RATE = 0.001;
 
 export type PaymentResult = { hash: string; valueWei: string };
 
+/** Convert USD amount to USDC-wei (18 decimals on Arc). 1 USD = 1 USDC. */
 function usdToWei(usd: number): bigint {
-  // Avoid floating point drift: convert to micro-ARC first.
-  const microArc = Math.round(usd * USD_TO_ARC_RATE * 1_000_000);
-  return BigInt(microArc) * 10n ** 12n; // 1e18 / 1e6
+  // Use 6-decimal micro-USDC as the integer pivot to avoid float drift.
+  const microUsdc = Math.round(usd * 1_000_000);
+  return BigInt(microUsdc) * 10n ** BigInt(USDC_DECIMALS - 6);
+}
+
+async function ensureArcTestnet(): Promise<void> {
+  if (!window.ethereum) throw new Error("Connect your wallet first");
+  const current = (await window.ethereum.request({ method: "eth_chainId" })) as string;
+  if (current?.toLowerCase() === ARC_TESTNET.chainIdHex) return;
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: ARC_TESTNET.chainIdHex }],
+    });
+  } catch (err: unknown) {
+    // 4902 = chain not added yet → add it.
+    if ((err as { code?: number })?.code === 4902) {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [
+          {
+            chainId: ARC_TESTNET.chainIdHex,
+            chainName: ARC_TESTNET.name,
+            rpcUrls: [ARC_TESTNET.rpcUrl],
+            blockExplorerUrls: [ARC_TESTNET.explorer],
+            nativeCurrency: ARC_TESTNET.currency,
+          },
+        ],
+      });
+    } else {
+      throw err;
+    }
+  }
 }
 
 async function getReceipt(hash: string, timeoutMs = 120_000): Promise<{ status: string } | null> {
@@ -31,7 +67,8 @@ async function getReceipt(hash: string, timeoutMs = 120_000): Promise<{ status: 
       params: [hash],
     })) as { status?: string } | null;
     if (r && r.status) return { status: r.status };
-    await new Promise((res) => setTimeout(res, 2500));
+    // Arc has sub-second finality, so poll fast.
+    await new Promise((res) => setTimeout(res, 1000));
   }
   return null;
 }
@@ -40,6 +77,8 @@ export async function payUSD(usd: number): Promise<PaymentResult> {
   if (typeof window === "undefined" || !window.ethereum) {
     throw new Error("Connect your wallet first");
   }
+  await ensureArcTestnet();
+
   const accs = (await window.ethereum.request({ method: "eth_accounts" })) as string[];
   const from = accs[0];
   if (!from) throw new Error("Connect your wallet first");
@@ -47,13 +86,13 @@ export async function payUSD(usd: number): Promise<PaymentResult> {
   const valueWei = usdToWei(usd);
   const valueHex = "0x" + valueWei.toString(16);
 
-  toast.message("Confirm the transaction in your wallet…");
+  toast.message(`Confirm $${usd} USDC payment in your wallet…`);
   const hash = (await window.ethereum.request({
     method: "eth_sendTransaction",
     params: [{ from, to: TREASURY_ADDRESS, value: valueHex }],
   })) as string;
 
-  toast.message("Waiting for on-chain confirmation…");
+  toast.message("Waiting for Arc confirmation…");
   const receipt = await getReceipt(hash);
   if (!receipt) throw new Error("Transaction timed out before confirmation");
   if (receipt.status !== "0x1") throw new Error("Transaction failed on-chain");
