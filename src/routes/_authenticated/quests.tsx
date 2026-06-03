@@ -122,7 +122,7 @@ function QuestsPage() {
         <span className="px-3 py-1.5 rounded-lg bg-primary/15 text-neon text-sm font-semibold whitespace-nowrap">⚡ {earnedXp} XP</span>
       </div>
 
-      <div className="mt-6 grid grid-cols-4 border-b border-zinc-800">
+      <div className="mt-6 grid grid-cols-5 border-b border-zinc-800">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`py-3 text-sm font-medium border-b-2 transition-colors ${
