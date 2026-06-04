@@ -30,31 +30,52 @@ function usdToWei(usd: number): bigint {
 
 async function ensureArcTestnet(): Promise<void> {
   if (!window.ethereum) throw new Error("Connect your wallet first");
-  const current = (await window.ethereum.request({ method: "eth_chainId" })) as string;
-  if (current?.toLowerCase() === ARC_TESTNET.chainIdHex) return;
+  const expected = ARC_TESTNET.chainIdHex.toLowerCase();
+
+  const readChain = async () =>
+    ((await window.ethereum!.request({ method: "eth_chainId" })) as string).toLowerCase();
+
+  let current = await readChain();
+  if (current === expected) return;
+
+  const addArc = async () => {
+    await window.ethereum!.request({
+      method: "wallet_addEthereumChain",
+      params: [
+        {
+          chainId: ARC_TESTNET.chainIdHex,
+          chainName: ARC_TESTNET.name,
+          rpcUrls: [ARC_TESTNET.rpcUrl],
+          blockExplorerUrls: [ARC_TESTNET.explorer],
+          nativeCurrency: ARC_TESTNET.currency,
+        },
+      ],
+    });
+  };
+
   try {
     await window.ethereum.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: ARC_TESTNET.chainIdHex }],
     });
   } catch (err: unknown) {
-    // 4902 = chain not added yet → add it.
-    if ((err as { code?: number })?.code === 4902) {
-      await window.ethereum.request({
-        method: "wallet_addEthereumChain",
-        params: [
-          {
-            chainId: ARC_TESTNET.chainIdHex,
-            chainName: ARC_TESTNET.name,
-            rpcUrls: [ARC_TESTNET.rpcUrl],
-            blockExplorerUrls: [ARC_TESTNET.explorer],
-            nativeCurrency: ARC_TESTNET.currency,
-          },
-        ],
-      });
+    const code = (err as { code?: number })?.code;
+    // 4902 = chain not in wallet. -32603 / generic errors can also mean the
+    // wallet's saved chainId for the same RPC doesn't match — try adding fresh.
+    if (code === 4902 || code === -32603) {
+      await addArc();
     } else {
       throw err;
     }
+  }
+
+  current = await readChain();
+  if (current !== expected) {
+    // Wallet has a stale "Arc Testnet" entry with a different chain ID.
+    throw new Error(
+      `Wallet is on chain ${current} but Arc Testnet is ${expected} (${ARC_TESTNET.chainId}). ` +
+        `Open MetaMask → Settings → Networks → delete the existing "Arc Testnet" entry, then reconnect.`,
+    );
   }
 }
 
@@ -89,7 +110,7 @@ export async function payUSD(usd: number): Promise<PaymentResult> {
   toast.message(`Confirm $${usd} USDC payment in your wallet…`);
   const hash = (await window.ethereum.request({
     method: "eth_sendTransaction",
-    params: [{ from, to: TREASURY_ADDRESS, value: valueHex }],
+    params: [{ from, to: TREASURY_ADDRESS, value: valueHex, chainId: ARC_TESTNET.chainIdHex }],
   })) as string;
 
   toast.message("Waiting for Arc confirmation…");
