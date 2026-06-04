@@ -70,19 +70,19 @@ function FaucetChecker() {
         <div className="mt-6 space-y-3">
           <div className="flex items-center justify-between p-4 bg-zinc-900 rounded-lg">
             <div>
-              <p className="text-xs text-muted-foreground">Current ARC balance</p>
-              <p className="text-2xl font-bold text-neon">{eth?.toFixed(4) ?? "—"} ARC</p>
+              <p className="text-xs text-muted-foreground">Current USDC balance</p>
+              <p className="text-2xl font-bold text-neon">{eth?.toFixed(4) ?? "—"} USDC</p>
             </div>
             <button onClick={refresh} disabled={loading} className="text-muted-foreground hover:text-foreground">
               <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
           <div className={`p-4 rounded-lg border ${eligible ? "border-success/40 bg-success/5" : "border-warning/40 bg-warning/5"}`}>
-            <p className="font-semibold">{eligible ? "✓ Eligible for faucet drip" : "⚠ Not eligible — balance above 0.1 ARC"}</p>
+            <p className="font-semibold">{eligible ? "✓ Eligible for faucet drip" : "⚠ Not eligible — balance above 0.1 USDC"}</p>
           </div>
-          <a href="https://faucet.arc.network" target="_blank" rel="noreferrer"
+          <a href="https://faucet.circle.com" target="_blank" rel="noreferrer"
             className="block text-center py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium">
-            Open Faucet <ExternalLink className="w-4 h-4 inline ml-1" />
+            Open Circle Faucet <ExternalLink className="w-4 h-4 inline ml-1" />
           </a>
         </div>
       )}
@@ -109,7 +109,7 @@ function WalletTracker() {
       </form>
       {target && (
         <div className="mt-6 space-y-3">
-          <Stat label="Balance" value={loading ? "Loading…" : `${eth?.toFixed(4) ?? "—"} ARC`} />
+          <Stat label="Balance" value={loading ? "Loading…" : `${eth?.toFixed(4) ?? "—"} USDC`} />
           <Stat label="Total transactions" value={txCount?.toString() ?? "—"} />
           <button onClick={refresh} className="text-xs text-primary hover:underline">Refresh</button>
         </div>

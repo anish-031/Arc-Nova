@@ -92,10 +92,10 @@ function WalletPage() {
               <ActionBtn onClick={() => toast.info("Swap routing coming soon")} icon={<ArrowLeftRight />} label="Swap" />
             </div>
             <div className="mt-6 space-y-2">
-              <TokenRow symbol="ARC" name="Arc Native" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
+              <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
             </div>
             <div className="mt-4 flex justify-center gap-4 text-xs">
-              <a href="https://faucet.arc.network" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">Get Testnet ARC <ExternalLink className="w-3 h-3" /></a>
+              <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">Get Testnet USDC <ExternalLink className="w-3 h-3" /></a>
               <a href={`${ARC_NETWORK.blockExplorerUrls[0]}/address/${address}`} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">View on Explorer <ExternalLink className="w-3 h-3" /></a>
             </div>
           </section>
@@ -115,9 +115,9 @@ function WalletPage() {
 
       {tab === "tokens" && (
         <section className="panel border border-zinc-800 rounded-xl p-6 space-y-2">
-          <TokenRow symbol="ARC" name="Arc Native" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
-          <TokenRow symbol="USDC" name="USD Coin" amount={0} usd={0} color="bg-blue-400" />
-          <TokenRow symbol="EURC" name="Euro Coin" amount={0} usd={0} color="bg-blue-600" />
+          <TokenRow symbol="USDC" name="USD Coin (native)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
+          <TokenRow symbol="EURC" name="Euro Coin" amount={0} usd={0} color="bg-indigo-500" />
+          <TokenRow symbol="cBTC" name="Circle Bitcoin (coming soon)" amount={0} usd={0} color="bg-orange-500" />
         </section>
       )}
 
@@ -195,10 +195,10 @@ function SendDialog({ onClose }: { onClose: () => void }) {
     }
   }
   return (
-    <Modal onClose={onClose} title="Send ARC">
+    <Modal onClose={onClose} title="Send USDC">
       <form onSubmit={go} className="space-y-4">
         <Field label="To address" value={to} onChange={setTo} placeholder="0x…" required />
-        <Field label="Amount (ARC)" value={amount} onChange={setAmount} type="number" step="0.0001" required />
+        <Field label="Amount (USDC)" value={amount} onChange={setAmount} type="number" step="0.0001" required />
         <button disabled={busy} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50">
           {busy ? "Sending…" : "Send"}
         </button>
