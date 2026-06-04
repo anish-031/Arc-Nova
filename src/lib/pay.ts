@@ -110,7 +110,7 @@ export async function payUSD(usd: number): Promise<PaymentResult> {
   toast.message(`Confirm $${usd} USDC payment in your wallet…`);
   const hash = (await window.ethereum.request({
     method: "eth_sendTransaction",
-    params: [{ from, to: TREASURY_ADDRESS, value: valueHex }],
+    params: [{ from, to: TREASURY_ADDRESS, value: valueHex, chainId: ARC_TESTNET.chainIdHex }],
   })) as string;
 
   toast.message("Waiting for Arc confirmation…");
