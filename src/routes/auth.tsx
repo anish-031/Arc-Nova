@@ -93,10 +93,18 @@ function AuthPage() {
           </button>
         </form>
 
-        <button onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="mt-4 text-sm text-muted-foreground hover:text-neon transition-colors w-full">
-          {mode === "signin" ? "No account? Create one →" : "Have an account? Sign in →"}
-        </button>
+        <div className="mt-4 flex items-center justify-between text-sm">
+          <button onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            className="text-muted-foreground hover:text-neon transition-colors">
+            {mode === "signin" ? "No account? Create one →" : "Have an account? Sign in →"}
+          </button>
+          {mode === "signin" && (
+            <button onClick={resendConfirmation} type="button"
+              className="text-muted-foreground hover:text-neon transition-colors">
+              Resend confirmation
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
