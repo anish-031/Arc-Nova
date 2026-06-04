@@ -35,10 +35,22 @@ function AuthPage() {
           options: { emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
-        toast.success("Account created. Check your email to verify.");
+        toast.success("Account created. Check your email to verify before signing in.");
+        setMode("signin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          // Surface the most common cause clearly.
+          const msg = (error.message || "").toLowerCase();
+          if (msg.includes("email") && msg.includes("confirm")) {
+            toast.error("Please confirm your email first — check your inbox for the verification link.");
+          } else if (msg.includes("invalid")) {
+            toast.error("Invalid email or password. If you just signed up, confirm your email first.");
+          } else {
+            throw error;
+          }
+          return;
+        }
         toast.success("Welcome back, operator.");
       }
     } catch (err: any) {
@@ -46,6 +58,16 @@ function AuthPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function resendConfirmation() {
+    if (!email) { toast.error("Enter your email first"); return; }
+    const { error } = await supabase.auth.resend({
+      type: "signup", email,
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+    });
+    if (error) toast.error(error.message);
+    else toast.success("Confirmation email resent — check your inbox.");
   }
 
   return (
