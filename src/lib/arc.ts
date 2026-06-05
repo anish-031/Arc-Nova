@@ -20,6 +20,18 @@ export const ARC_TESTNET = {
   currency: { name: "USDC", symbol: "USDC", decimals: 18 },
 } as const;
 
+export const STALE_ARC_CHAIN_ID_HEX = "0x4cf612";
+
+export const STALE_ARC_NETWORK_MESSAGE =
+  `Your wallet has an old Arc Testnet network saved with chain ID ${STALE_ARC_CHAIN_ID_HEX}. ` +
+  `MetaMask blocks adding the corrected Arc network because it uses the same RPC. ` +
+  `Delete Arc Testnet in MetaMask Settings → Networks, then reconnect. Correct chain ID: ${ARC_TESTNET.chainId} (${ARC_TESTNET.chainIdHex}).`;
+
+export function isStaleArcNetworkError(error: unknown): boolean {
+  const message = (error as { message?: string })?.message?.toLowerCase() ?? "";
+  return message.includes("same rpc endpoint") || message.includes(STALE_ARC_CHAIN_ID_HEX);
+}
+
 /** Native USDC gas token decimals on Arc. */
 export const USDC_DECIMALS = 18;
 
