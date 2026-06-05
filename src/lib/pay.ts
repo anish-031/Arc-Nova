@@ -59,13 +59,22 @@ async function ensureArcTestnet(): Promise<void> {
       params: [{ chainId: ARC_TESTNET.chainIdHex }],
     });
   } catch (err: unknown) {
+    current = await readChain().catch(() => current);
+    if (current === expected) return;
+
     const code = (err as { code?: number })?.code;
-    // 4902 = chain not in wallet. -32603 / generic errors can also mean the
-    // wallet's saved chainId for the same RPC doesn't match — try adding fresh.
-    if (code === 4902 || code === -32603) {
+    // 4902 = chain is truly missing. Do not call addEthereumChain for generic
+    // switch failures, because MetaMask may already have Arc and will only show
+    // the add-network prompt instead of continuing to payment.
+    if (code === 4902) {
       await addArc();
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: ARC_TESTNET.chainIdHex }],
+      }).catch(() => undefined);
     } else {
-      throw err;
+      const message = (err as { message?: string })?.message;
+      throw new Error(message || "Switch your wallet to Arc Testnet, then try the payment again.");
     }
   }
 
@@ -110,7 +119,7 @@ export async function payUSD(usd: number): Promise<PaymentResult> {
   toast.message(`Confirm $${usd} USDC payment in your wallet…`);
   const hash = (await window.ethereum.request({
     method: "eth_sendTransaction",
-    params: [{ from, to: TREASURY_ADDRESS, value: valueHex, chainId: ARC_TESTNET.chainIdHex }],
+    params: [{ from, to: TREASURY_ADDRESS, value: valueHex }],
   })) as string;
 
   toast.message("Waiting for Arc confirmation…");

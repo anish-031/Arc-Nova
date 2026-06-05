@@ -1,7 +1,7 @@
 /**
  * Arc Testnet wallet connect (EIP-1193 / window.ethereum).
  * Network parameters per https://docs.arc.io/arc/references/connect-to-arc
- *  - Chain ID:  5042002 (0x4cf612)
+ *  - Chain ID:  5042002 (0x4cef52)
  *  - Currency:  USDC (native gas token, 18 decimals)
  *  - RPC:       https://rpc.testnet.arc.network
  *  - Explorer:  https://testnet.arcscan.app
@@ -55,13 +55,17 @@ export function useWallet() {
     try {
       const accs = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
       const addr = accs[0]?.toLowerCase() ?? null;
-      // Try switch to Arc Network
+      // Only switch/add Arc when the wallet is not already on the expected chain.
       try {
-        await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ARC_NETWORK.chainId }] });
+        const current = ((await window.ethereum.request({ method: "eth_chainId" })) as string).toLowerCase();
+        if (current !== ARC_NETWORK.chainId.toLowerCase()) {
+          await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ARC_NETWORK.chainId }] });
+        }
       } catch (err: unknown) {
         const e = err as { code?: number };
         if (e?.code === 4902) {
           await window.ethereum.request({ method: "wallet_addEthereumChain", params: [ARC_NETWORK] });
+          await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ARC_NETWORK.chainId }] }).catch(() => undefined);
         }
       }
       setAddress(addr);
