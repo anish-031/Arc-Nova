@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/wallet")({
 type Tab = "overview" | "tokens" | "history";
 
 function WalletPage() {
-  const { address, connect, connecting } = useWallet();
+  const { address, connect, connecting, disconnect } = useWallet();
   const { eth, gasGwei, txCount, refresh, loading } = useWalletBalance();
   const [tab, setTab] = useState<Tab>("overview");
   const [sendOpen, setSendOpen] = useState(false);
@@ -48,10 +48,16 @@ function WalletPage() {
           <h1 className="text-3xl font-bold flex items-center gap-2"><WalletIcon className="text-neon" /> Wallet</h1>
           <p className="text-muted-foreground">Manage your assets on Arc Network</p>
         </div>
-        <button onClick={refresh} disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-800 hover:border-zinc-600 text-sm disabled:opacity-50">
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={refresh} disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-800 hover:border-zinc-600 text-sm disabled:opacity-50">
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </button>
+          <button onClick={disconnect}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-800 hover:border-destructive hover:text-destructive text-sm">
+            Disconnect
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -93,6 +99,8 @@ function WalletPage() {
             </div>
             <div className="mt-6 space-y-2">
               <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
+              <TokenRow symbol="EURC" name="Euro Coin" amount={0} usd={0} color="bg-indigo-500" />
+              <TokenRow symbol="cBTC" name="Circle Bitcoin (coming soon)" amount={0} usd={0} color="bg-orange-500" />
             </div>
             <div className="mt-4 flex justify-center gap-4 text-xs">
               <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">Get Testnet USDC <ExternalLink className="w-3 h-3" /></a>

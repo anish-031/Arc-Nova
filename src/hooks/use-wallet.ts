@@ -89,5 +89,10 @@ export function useWallet() {
     }
   }, []);
 
-  return { address, connecting, connect };
+  const disconnect = useCallback(() => {
+    setAddress(null);
+    toast.success("Wallet disconnected");
+  }, []);
+
+  return { address, connecting, connect, disconnect };
 }
