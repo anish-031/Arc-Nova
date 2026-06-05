@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/wallet")({
 type Tab = "overview" | "tokens" | "history";
 
 function WalletPage() {
-  const { address, connect, connecting } = useWallet();
+  const { address, connect, connecting, disconnect } = useWallet();
   const { eth, gasGwei, txCount, refresh, loading } = useWalletBalance();
   const [tab, setTab] = useState<Tab>("overview");
   const [sendOpen, setSendOpen] = useState(false);
