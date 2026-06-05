@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ARC_TESTNET } from "@/lib/arc";
+import { ARC_TESTNET, isStaleArcNetworkError, STALE_ARC_CHAIN_ID_HEX, STALE_ARC_NETWORK_MESSAGE } from "@/lib/arc";
 
 export const ARC_NETWORK = {
   chainId: ARC_TESTNET.chainIdHex,
@@ -64,8 +64,17 @@ export function useWallet() {
       } catch (err: unknown) {
         const e = err as { code?: number };
         if (e?.code === 4902) {
-          await window.ethereum.request({ method: "wallet_addEthereumChain", params: [ARC_NETWORK] });
+          try {
+            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [ARC_NETWORK] });
+          } catch (addError) {
+            if (isStaleArcNetworkError(addError)) throw new Error(STALE_ARC_NETWORK_MESSAGE);
+            throw addError;
+          }
           await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ARC_NETWORK.chainId }] }).catch(() => undefined);
+        } else {
+          const current = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
+          if (typeof current === "string" && current.toLowerCase() === STALE_ARC_CHAIN_ID_HEX) throw new Error(STALE_ARC_NETWORK_MESSAGE);
+          throw err;
         }
       }
       setAddress(addr);

@@ -11,7 +11,7 @@
  *  4. Return { hash, valueWei } for server-side verification.
  */
 import { toast } from "sonner";
-import { ARC_TESTNET, USDC_DECIMALS } from "./arc";
+import { ARC_TESTNET, isStaleArcNetworkError, STALE_ARC_CHAIN_ID_HEX, STALE_ARC_NETWORK_MESSAGE, USDC_DECIMALS } from "./arc";
 
 /**
  * Treasury address that receives buyer payments on Arc Testnet.
@@ -67,7 +67,12 @@ async function ensureArcTestnet(): Promise<void> {
     // switch failures, because MetaMask may already have Arc and will only show
     // the add-network prompt instead of continuing to payment.
     if (code === 4902) {
-      await addArc();
+      try {
+        await addArc();
+      } catch (addError) {
+        if (isStaleArcNetworkError(addError)) throw new Error(STALE_ARC_NETWORK_MESSAGE);
+        throw addError;
+      }
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: ARC_TESTNET.chainIdHex }],
@@ -81,10 +86,8 @@ async function ensureArcTestnet(): Promise<void> {
   current = await readChain();
   if (current !== expected) {
     // Wallet has a stale "Arc Testnet" entry with a different chain ID.
-    throw new Error(
-      `Wallet is on chain ${current} but Arc Testnet is ${expected} (${ARC_TESTNET.chainId}). ` +
-        `Open MetaMask → Settings → Networks → delete the existing "Arc Testnet" entry, then reconnect.`,
-    );
+    if (current === STALE_ARC_CHAIN_ID_HEX) throw new Error(STALE_ARC_NETWORK_MESSAGE);
+    throw new Error(`Switch your wallet to Arc Testnet ${expected} (${ARC_TESTNET.chainId}), then try the payment again.`);
   }
 }
 
