@@ -99,6 +99,8 @@ function WalletPage() {
             </div>
             <div className="mt-6 space-y-2">
               <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
+              <TokenRow symbol="EURC" name="Euro Coin" amount={0} usd={0} color="bg-indigo-500" />
+              <TokenRow symbol="cBTC" name="Circle Bitcoin (coming soon)" amount={0} usd={0} color="bg-orange-500" />
             </div>
             <div className="mt-4 flex justify-center gap-4 text-xs">
               <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">Get Testnet USDC <ExternalLink className="w-3 h-3" /></a>
