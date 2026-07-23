@@ -4,7 +4,7 @@ import { useWallet, ARC_NETWORK } from "@/hooks/use-wallet";
 import { useWalletBalance, sendNativeTx } from "@/hooks/use-wallet-balance";
 import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, ExternalLink, Wallet as WalletIcon, TrendingUp, TrendingDown, Activity, History } from "lucide-react";
 import { toast } from "sonner";
-import { TOKENS, getQuote, switchToBase, uniswapSwapUrl, type Token, type Quote } from "@/lib/uniswap";
+import { TOKENS, getQuote, executeSwap, type Token, type Quote } from "@/lib/uniswap";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
@@ -289,20 +289,21 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
     if (!quote) return;
     setSwapping(true);
     try {
-      await switchToBase();
-      const url = uniswapSwapUrl(tokenIn, tokenOut, quote.amountIn);
-      window.open(url, "_blank", "noopener,noreferrer");
-      toast.success(`Opened Uniswap on Base — confirm the ${tokenIn.symbol} → ${tokenOut.symbol} swap in your wallet.`);
+      const res = await executeSwap(tokenIn, tokenOut, quote.amountIn);
+      toast.success(
+        `Swap sent: ${res.txHash.slice(0, 10)}…`,
+        res.explorerUrl ? { description: "View on Arcscan", action: { label: "Open", onClick: () => window.open(res.explorerUrl, "_blank", "noopener,noreferrer") } } : undefined,
+      );
       onClose();
     } catch (e: unknown) {
-      toast.error((e as Error).message ?? "Failed to open swap");
+      toast.error((e as Error).message ?? "Swap failed");
     } finally {
       setSwapping(false);
     }
   }
 
   return (
-    <Modal onClose={onClose} title="Swap on Uniswap · Base">
+    <Modal onClose={onClose} title="Swap on Arc · Circle App Kit">
       <div className="space-y-3">
         <TokenPicker label="From" token={tokenIn} onChange={setTokenIn} tokens={TOKENS} amount={amount} onAmount={setAmount} />
         <div className="flex justify-center -my-1">
@@ -313,14 +314,15 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
         <TokenPicker label="To" token={tokenOut} onChange={setTokenOut} tokens={TOKENS} amount={quote ? Number(quote.amountOut).toFixed(6) : ""} readOnly />
 
         <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 text-xs space-y-1 min-h-[92px]">
-          {loading && <p className="text-muted-foreground">Fetching live price…</p>}
-          {err && <p className="text-destructive">{err}</p>}
+          {loading && <p className="text-muted-foreground">Fetching quote from Arc…</p>}
+          {err && <p className="text-destructive break-words">{err}</p>}
           {quote && !loading && (
             <>
               <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-mono">1 {tokenIn.symbol} ≈ {quote.rate.toFixed(6)} {tokenOut.symbol}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">{tokenIn.symbol} price</span><span className="font-mono">${quote.priceIn.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">{tokenOut.symbol} price</span><span className="font-mono">${quote.priceOut.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Est. fee (0.30%)</span><span className="font-mono">{quote.fee.toFixed(6)} {tokenIn.symbol}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Min received</span><span className="font-mono">{Number(quote.stopLimit).toFixed(6)} {tokenOut.symbol}</span></div>
+              {quote.fees.slice(0, 3).map((f, i) => (
+                <div key={i} className="flex justify-between"><span className="text-muted-foreground">Fee{f.type ? ` (${f.type})` : ""}</span><span className="font-mono">{Number(f.amount).toFixed(6)} {f.token}</span></div>
+              ))}
               <div className="flex justify-between"><span className="text-muted-foreground">Route</span><span className="font-mono">{quote.route}</span></div>
             </>
           )}
@@ -332,10 +334,10 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
           disabled={!quote || loading || swapping}
           className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50"
         >
-          {swapping ? "Opening Uniswap…" : `Swap ${tokenIn.symbol} → ${tokenOut.symbol}`}
+          {swapping ? "Confirm in wallet…" : `Swap ${tokenIn.symbol} → ${tokenOut.symbol}`}
         </button>
         <p className="text-[10px] text-muted-foreground text-center">
-          Real on-chain swap via Uniswap on Base. Your wallet will switch to Base and prompt you to sign the transaction. Requires ETH on Base for gas.
+          Real on-chain swap on Arc Testnet via Circle App Kit. Your wallet will prompt an approve + swap signature — needs USDC on Arc Testnet for gas.
         </p>
       </div>
     </Modal>
