@@ -165,6 +165,7 @@ function QuestsPage() {
           <p className="text-muted-foreground text-sm mt-1">Complete quests to earn XP and rewards</p>
         </div>
         <div className="flex gap-8 text-right">
+          <div><p className="text-xs text-muted-foreground">Streak</p><p className="font-bold text-neon">🔥 {streak}d</p></div>
           <div><p className="text-xs text-muted-foreground">Progress</p><p className="font-bold text-neon">{doneCount}/{QUESTS.length} Completed</p></div>
           <div><p className="text-xs text-muted-foreground">XP Earned</p><p className="font-bold text-neon">{earnedXp}/{totalXp} XP</p></div>
         </div>
