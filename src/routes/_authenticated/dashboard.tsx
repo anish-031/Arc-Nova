@@ -60,7 +60,7 @@ function DashboardPage() {
     <main className="max-w-7xl mx-auto px-6 py-10 space-y-8">
       <div className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <p className="font-display text-xs tracking-widest text-muted-foreground">// OPERATOR</p>
+          <p className="font-display text-xs tracking-widest text-muted-foreground">Account</p>
           <h1 className="text-3xl font-bold mt-1">{profile.username ?? user.email}</h1>
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
@@ -80,7 +80,7 @@ function DashboardPage() {
 
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display tracking-widest text-sm text-muted-foreground">// RECENT ORDERS</h2>
+          <h2 className="font-display tracking-widest text-sm text-muted-foreground">RECENT ORDERS</h2>
           <span className="text-xs text-muted-foreground">{purchases.length} entries</span>
         </div>
         <div className="panel border border-zinc-800 rounded-lg overflow-hidden">
