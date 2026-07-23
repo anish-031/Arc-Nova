@@ -18,5 +18,11 @@ export default defineConfig({
         globals: { Buffer: true, global: true, process: true },
       }),
     ],
+    resolve: {
+      alias: {
+        "rpc-websockets/dist/lib/client": "rpc-websockets/dist/index.browser.mjs",
+        "rpc-websockets": "rpc-websockets/dist/index.browser.mjs",
+      },
+    },
   },
 });
