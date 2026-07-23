@@ -20,48 +20,25 @@ type Purchase = {
   tx_hash: string | null;
 };
 
-type SwapRow = {
-  id: string;
-  token_in: string;
-  token_out: string;
-  amount_in: number;
-  amount_out: number | null;
-  min_received: number | null;
-  tx_hash: string | null;
-  explorer_url: string | null;
-  status: string;
-  error: string | null;
-  gas_gwei: number | null;
-  created_at: string;
-};
-
 function DashboardPage() {
   const { user } = Route.useRouteContext();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [swaps, setSwaps] = useState<SwapRow[]>([]);
   const [loading, setLoading] = useState(true);
   const { address } = useWallet();
-
-  const fetchSwaps = useServerFn(listSwapAttempts);
-  const patchSwap = useServerFn(updateSwapAttempt);
 
   async function load(walletAddr?: string | null) {
     setLoading(true);
     try {
       const p = await healProfile(user, walletAddr ?? address ?? null);
       setProfile(p);
-      const [{ data: orders }, swapRows] = await Promise.all([
-        supabase
-          .from("purchases")
-          .select("id,product_name,product_type,price,status,created_at,tx_hash")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(10),
-        fetchSwaps().catch(() => [] as SwapRow[]),
-      ]);
+      const { data: orders } = await supabase
+        .from("purchases")
+        .select("id,product_name,product_type,price,status,created_at,tx_hash")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
       setPurchases((orders ?? []) as Purchase[]);
-      setSwaps(swapRows as SwapRow[]);
     } catch (e: unknown) {
       const err = e as { message?: string };
       toast.error(err.message ?? "Failed to load profile");
@@ -72,24 +49,7 @@ function DashboardPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [user.id]);
 
-  // Poll on-chain status for any swap still pending/broadcast.
-  useEffect(() => {
-    const inflight = swaps.filter((s) => (s.status === "pending" || s.status === "broadcast") && s.tx_hash);
-    if (inflight.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      for (const s of inflight) {
-        const res = await waitForReceipt(s.tx_hash!, { intervalMs: 4000, timeoutMs: 120_000 });
-        if (cancelled || !res) continue;
-        try {
-          await patchSwap({ data: { id: s.id, status: res } });
-          setSwaps((prev) => prev.map((r) => (r.id === s.id ? { ...r, status: res } : r)));
-        } catch { /* ignore */ }
-      }
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swaps.map((s) => `${s.id}:${s.status}`).join(",")]);
+
 
 
   if (loading || !profile) {
