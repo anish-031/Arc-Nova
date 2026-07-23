@@ -223,27 +223,21 @@ function QuestsPage() {
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-success/40 bg-success/10 text-success text-sm">
                         <Check className="w-4 h-4" /> Completed
                       </span>
-                    ) : q.requiresPurchaseType && !eligible && q.href ? (
-                      <a href={q.href}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-zinc-700 bg-zinc-900 text-muted-foreground text-sm hover:border-zinc-600">
-                        <q.Icon className="w-4 h-4" /> {q.cta}
-                      </a>
-                    ) : q.requiresPurchaseType && eligible ? (
+                    ) : eligible ? (
                       <button onClick={() => claim(q)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-success/40 bg-success/10 text-success text-sm hover:bg-success/20">
                         <Check className="w-4 h-4" /> Claim {q.xp} XP
                       </button>
                     ) : q.href ? (
                       <a href={q.href} target={q.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer"
-                        onClick={() => setTimeout(() => claim(q), 800)}
+                        onClick={() => markVisited(q)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/40 bg-primary/10 text-neon text-sm hover:bg-primary/20">
                         <LinkIcon className="w-4 h-4" /> {q.cta}
                       </a>
                     ) : (
-                      <button onClick={() => claim(q)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/40 bg-primary/10 text-neon text-sm hover:bg-primary/20">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-zinc-700 bg-zinc-900 text-muted-foreground text-sm">
                         <q.Icon className="w-4 h-4" /> {q.cta}
-                      </button>
+                      </span>
                     )}
                   </div>
                 </div>
