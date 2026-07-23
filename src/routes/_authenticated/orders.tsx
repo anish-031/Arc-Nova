@@ -46,7 +46,7 @@ function OrdersPage() {
         {orders.map((o) => (
           <div key={o.id} className="panel border border-zinc-800 rounded-lg p-5 flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <p className="font-display text-[10px] tracking-widest text-muted-foreground">// {o.product_type.toUpperCase()}</p>
+              <p className="font-display text-[10px] tracking-widest text-muted-foreground">{o.product_type.toUpperCase()}</p>
               <h3 className="font-semibold text-neon">{o.product_name}</h3>
               <p className="text-xs text-muted-foreground mt-1">
                 {o.custom_username && `X: ${o.custom_username} · `}

@@ -19,15 +19,13 @@ function Landing() {
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link to="/" className="font-display tracking-widest text-neon text-lg">ARC&nbsp;NOVA</Link>
           <nav className="flex items-center gap-3 text-sm">
-            <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
-            <Link to="/store" className="text-muted-foreground hover:text-foreground transition-colors">Store</Link>
             <Link to="/auth" className="px-3 py-1.5 rounded border border-zinc-800 hover:border-primary hover:text-neon transition-all">Sign in</Link>
           </nav>
         </div>
       </header>
 
       <section className="max-w-6xl mx-auto px-6 py-24">
-        <p className="font-display text-xs tracking-[0.3em] text-muted-foreground mb-4">// SYSTEM ONLINE</p>
+        <p className="font-display text-xs tracking-[0.3em] text-muted-foreground mb-4">SYSTEM ONLINE</p>
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
           Plug into the <span className="text-neon">grid</span>.<br/>
           Trade on <span className="text-accent">Arc</span>.
@@ -37,7 +35,6 @@ function Landing() {
         </p>
         <div className="mt-10 flex gap-3">
           <Link to="/auth" className="px-5 py-3 rounded bg-primary text-primary-foreground font-medium glow-border hover:opacity-90 transition-opacity">Enter the Network</Link>
-          <Link to="/store" className="px-5 py-3 rounded border border-zinc-800 hover:border-primary transition-all">Browse Store</Link>
         </div>
       </section>
 
@@ -48,7 +45,7 @@ function Landing() {
           { t: "Marketplace", d: "List, browse and trade digital goods." },
         ].map((f) => (
           <div key={f.t} className="panel border border-zinc-800 rounded-lg p-6 hover:border-primary transition-colors">
-            <p className="font-display text-xs text-muted-foreground mb-2">// MODULE</p>
+            <p className="font-display text-xs text-muted-foreground mb-2">MODULE</p>
             <h3 className="text-xl font-semibold text-neon">{f.t}</h3>
             <p className="mt-2 text-sm text-muted-foreground">{f.d}</p>
           </div>
