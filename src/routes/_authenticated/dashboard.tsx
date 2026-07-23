@@ -118,52 +118,6 @@ function DashboardPage() {
           </table>
         </div>
       </section>
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display tracking-widest text-sm text-muted-foreground">RECENT SWAPS</h2>
-          <button onClick={() => load()} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-            <RefreshCw className="w-3 h-3" /> Refresh
-          </button>
-        </div>
-        <div className="panel border border-zinc-800 rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-900/60 text-xs font-display tracking-widest text-muted-foreground">
-              <tr>
-                <th className="text-left px-4 py-2">PAIR</th>
-                <th className="text-left px-4 py-2">AMOUNT</th>
-                <th className="text-left px-4 py-2">MIN OUT</th>
-                <th className="text-left px-4 py-2">GAS</th>
-                <th className="text-left px-4 py-2">TX</th>
-                <th className="text-left px-4 py-2">DATE</th>
-                <th className="text-left px-4 py-2">STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {swaps.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">No swaps yet. Open the wallet and swap on Arc Testnet.</td></tr>
-              )}
-              {swaps.map((s) => (
-                <tr key={s.id} className="border-t border-zinc-800 hover:bg-zinc-900/40">
-                  <td className="px-4 py-3 font-mono">{s.token_in} → {s.token_out}</td>
-                  <td className="px-4 py-3 font-mono">{Number(s.amount_in).toFixed(4)}</td>
-                  <td className="px-4 py-3 font-mono text-muted-foreground">{s.min_received != null ? Number(s.min_received).toFixed(6) : "—"}</td>
-                  <td className="px-4 py-3 font-mono text-muted-foreground">{s.gas_gwei != null ? `${Number(s.gas_gwei).toFixed(1)} gwei` : "—"}</td>
-                  <td className="px-4 py-3 font-display text-xs">
-                    {s.tx_hash ? (
-                      <a href={s.explorer_url ?? `https://testnet.arcscan.app/tx/${s.tx_hash}`} target="_blank" rel="noreferrer"
-                        className="text-primary hover:underline inline-flex items-center gap-1">
-                        {s.tx_hash.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{new Date(s.created_at).toLocaleString()}</td>
-                  <td className="px-4 py-3"><StatusPill status={s.status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
     </main>
   );
 }
