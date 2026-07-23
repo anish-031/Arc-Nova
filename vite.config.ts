@@ -20,8 +20,8 @@ export default defineConfig({
   vite: {
     plugins: [
       nodePolyfills({
-        include: ["buffer", "process", "util", "stream", "events"],
-        globals: { Buffer: true, global: true, process: true },
+        include: ["buffer", "util", "stream", "events"],
+        globals: { Buffer: true, global: true, process: false },
       }),
     ],
     resolve: {
