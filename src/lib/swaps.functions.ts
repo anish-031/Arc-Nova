@@ -49,7 +49,7 @@ export const updateSwapAttempt = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const listSwapAttempts = createServerFn({ method: "GET" })
+export const listSwapAttempts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
