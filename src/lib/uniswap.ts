@@ -224,6 +224,7 @@ export async function executeSwap(
   const { createSwapKitContext, swap, SwapChain } = await loadKit();
   const adapter = await buildAdapter();
   const ctx = createSwapKitContext();
+  const kitKey = await getKitKey();
 
   const result = await swap(ctx, {
     from: { adapter, chain: SwapChain.Arc_Testnet },
@@ -233,7 +234,7 @@ export async function executeSwap(
     config: {
       slippageBps: 300,
       allowanceStrategy: "permit",
-      ...(KIT_KEY ? { kitKey: KIT_KEY } : {}),
+      kitKey,
     },
   });
 
