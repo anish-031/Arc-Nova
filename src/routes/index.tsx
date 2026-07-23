@@ -19,8 +19,6 @@ function Landing() {
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link to="/" className="font-display tracking-widest text-neon text-lg">ARC&nbsp;NOVA</Link>
           <nav className="flex items-center gap-3 text-sm">
-            <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
-            <Link to="/store" className="text-muted-foreground hover:text-foreground transition-colors">Store</Link>
             <Link to="/auth" className="px-3 py-1.5 rounded border border-zinc-800 hover:border-primary hover:text-neon transition-all">Sign in</Link>
           </nav>
         </div>
