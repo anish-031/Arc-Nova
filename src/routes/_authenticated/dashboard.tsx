@@ -64,18 +64,6 @@ function DashboardPage() {
           <h1 className="text-3xl font-bold mt-1">{profile.username ?? user.email}</h1>
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
-        <div className="flex gap-2">
-          {profile.address ? (
-            <span className="px-3 py-2 text-xs font-display rounded border border-primary/40 text-neon glow-border">
-              {profile.address.slice(0, 6)}…{profile.address.slice(-4)}
-            </span>
-          ) : (
-            <button onClick={linkWallet} disabled={connecting}
-              className="px-4 py-2 rounded bg-primary text-primary-foreground font-medium glow-border disabled:opacity-50">
-              {connecting ? "Connecting…" : "Connect Wallet · Arc"}
-            </button>
-          )}
-        </div>
       </div>
 
       <div className="grid md:grid-cols-4 gap-4">
