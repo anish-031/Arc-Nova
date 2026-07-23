@@ -124,15 +124,9 @@ async function buildAdapter() {
   return adapter;
 }
 
-import { getCircleKitKey } from "./circle-kit.functions";
-
-let KIT_KEY_CACHE: string | null = null;
-async function getKitKey(): Promise<string> {
-  if (KIT_KEY_CACHE) return KIT_KEY_CACHE;
-  const { kitKey } = await getCircleKitKey();
-  KIT_KEY_CACHE = kitKey;
-  return kitKey;
-}
+// Circle App Kit "kit key" is an embeddable client credential (like a
+// publishable API key) — safe to ship in the browser bundle.
+const KIT_KEY = "78bf52119942f73cfecf0d70a733450b:b40aac2d1d34759d7fdf929dc9c108f3";
 
 export async function getQuote(
   tokenIn: Token,
