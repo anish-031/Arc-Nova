@@ -4,7 +4,7 @@ import { useWallet, ARC_NETWORK } from "@/hooks/use-wallet";
 import { useWalletBalance, sendNativeTx } from "@/hooks/use-wallet-balance";
 import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, ExternalLink, Wallet as WalletIcon, TrendingUp, TrendingDown, Activity, History } from "lucide-react";
 import { toast } from "sonner";
-import { TOKENS, getQuote, type Token, type Quote } from "@/lib/uniswap";
+import { TOKENS, getQuote, switchToBase, uniswapSwapUrl, type Token, type Quote } from "@/lib/uniswap";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
@@ -289,16 +289,20 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
     if (!quote) return;
     setSwapping(true);
     try {
-      await new Promise((r) => setTimeout(r, 900));
-      toast.success(`Swapped ${quote.amountIn} ${tokenIn.symbol} → ${Number(quote.amountOut).toFixed(6)} ${tokenOut.symbol}`);
+      await switchToBase();
+      const url = uniswapSwapUrl(tokenIn, tokenOut, quote.amountIn);
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.success(`Opened Uniswap on Base — confirm the ${tokenIn.symbol} → ${tokenOut.symbol} swap in your wallet.`);
       onClose();
+    } catch (e: unknown) {
+      toast.error((e as Error).message ?? "Failed to open swap");
     } finally {
       setSwapping(false);
     }
   }
 
   return (
-    <Modal onClose={onClose} title="Swap">
+    <Modal onClose={onClose} title="Swap on Uniswap · Base">
       <div className="space-y-3">
         <TokenPicker label="From" token={tokenIn} onChange={setTokenIn} tokens={TOKENS} amount={amount} onAmount={setAmount} />
         <div className="flex justify-center -my-1">
@@ -313,10 +317,11 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
           {err && <p className="text-destructive">{err}</p>}
           {quote && !loading && (
             <>
-              <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-mono">1 {tokenIn.symbol} = {quote.rate.toFixed(6)} {tokenOut.symbol}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-mono">1 {tokenIn.symbol} ≈ {quote.rate.toFixed(6)} {tokenOut.symbol}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">{tokenIn.symbol} price</span><span className="font-mono">${quote.priceIn.toFixed(2)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">{tokenOut.symbol} price</span><span className="font-mono">${quote.priceOut.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Fee (0.30%)</span><span className="font-mono">{quote.fee.toFixed(6)} {tokenIn.symbol}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Est. fee (0.30%)</span><span className="font-mono">{quote.fee.toFixed(6)} {tokenIn.symbol}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Route</span><span className="font-mono">{quote.route}</span></div>
             </>
           )}
           {!loading && !err && !quote && <p className="text-muted-foreground">Enter an amount to see a live quote.</p>}
@@ -327,10 +332,10 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
           disabled={!quote || loading || swapping}
           className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50"
         >
-          {swapping ? "Swapping…" : "Swap"}
+          {swapping ? "Opening Uniswap…" : `Swap ${tokenIn.symbol} → ${tokenOut.symbol}`}
         </button>
         <p className="text-[10px] text-muted-foreground text-center">
-          Live prices via public market data. On-chain settlement will activate at Arc mainnet.
+          Real on-chain swap via Uniswap on Base. Your wallet will switch to Base and prompt you to sign the transaction. Requires ETH on Base for gas.
         </p>
       </div>
     </Modal>
