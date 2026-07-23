@@ -256,31 +256,64 @@ function Field({ label, value, onChange, ...rest }: { label: string; value: stri
   );
 }
 
-function SwapDialog({ onClose }: { onClose: () => void }) {
+function SwapDialog({ walletAddress, onClose }: { walletAddress: string | null; onClose: () => void }) {
   const [tokenIn, setTokenIn] = useState<Token>(TOKENS[0]);
   const [tokenOut, setTokenOut] = useState<Token>(TOKENS[1]);
   const [amount, setAmount] = useState("1");
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoteAt, setQuoteAt] = useState<number | null>(null);
+  const [gasGwei, setGasGwei] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [swapping, setSwapping] = useState(false);
+  const [step, setStep] = useState<SwapStep | null>(null);
+  const [stepErr, setStepErr] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
 
-  useEffect(() => {
-    setQuote(null); setErr(null);
+  const createAttempt = useServerFn(createSwapAttempt);
+  const updateAttempt = useServerFn(updateSwapAttempt);
+
+  async function fetchQuote(silent = false) {
     const a = Number(amount);
-    if (!a || a <= 0 || tokenIn.symbol === tokenOut.symbol) return;
-    const t = setTimeout(async () => {
-      setLoading(true);
-      try {
-        setQuote(await getQuote(tokenIn, tokenOut, amount));
-      } catch (e) {
-        setErr((e as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    }, 300);
+    if (!a || a <= 0 || tokenIn.symbol === tokenOut.symbol) {
+      setQuote(null);
+      return null;
+    }
+    if (!silent) setLoading(true);
+    setErr(null);
+    try {
+      const [q, g] = await Promise.all([
+        getQuote(tokenIn, tokenOut, amount),
+        getGasPriceGwei(),
+      ]);
+      setQuote(q);
+      setGasGwei(g);
+      setQuoteAt(Date.now());
+      return q;
+    } catch (e) {
+      setErr((e as Error).message);
+      return null;
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }
+
+  // Debounced quote on input change
+  useEffect(() => {
+    setQuote(null);
+    setErr(null);
+    const t = setTimeout(() => { void fetchQuote(false); }, 300);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenIn, tokenOut, amount]);
+
+  // Auto-refresh live quote every 12s while the dialog is idle
+  useEffect(() => {
+    if (swapping) return;
+    const id = setInterval(() => { void fetchQuote(true); }, 12_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenIn, tokenOut, amount, swapping]);
 
   function flip() {
     setTokenIn(tokenOut);
@@ -288,28 +321,77 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
   }
 
   async function execute() {
-    if (!quote) return;
     setSwapping(true);
+    setStep("quoting");
+    setStepErr(null);
+    setTxHash(null);
+    let attemptId: string | null = null;
     try {
-      const res = await executeSwap(tokenIn, tokenOut, quote.amountIn);
-      toast.success(
-        `Swap sent: ${res.txHash.slice(0, 10)}…`,
-        res.explorerUrl ? { description: "View on Arcscan", action: { label: "Open", onClick: () => window.open(res.explorerUrl, "_blank", "noopener,noreferrer") } } : undefined,
-      );
-      onClose();
+      // Auto-refresh quote + gas right before submit so calldata is current
+      const fresh = await fetchQuote(true);
+      if (!fresh) throw new Error(err ?? "Quote unavailable — try again");
+
+      attemptId = (await createAttempt({
+        data: {
+          wallet_address: walletAddress,
+          token_in: tokenIn.symbol,
+          token_out: tokenOut.symbol,
+          amount_in: Number(fresh.amountIn),
+          amount_out: Number(fresh.amountOut) || null,
+          min_received: Number(fresh.stopLimit) || null,
+          rate: fresh.rate || null,
+          gas_gwei: gasGwei ?? null,
+        },
+      })).id;
+
+      const res = await executeSwap(tokenIn, tokenOut, fresh.amountIn, (s) => setStep(s));
+
+      setTxHash(res.txHash);
+      setStep("confirming");
+      await updateAttempt({
+        data: {
+          id: attemptId,
+          status: "broadcast",
+          tx_hash: res.txHash,
+          explorer_url: res.explorerUrl ?? null,
+          amount_out: res.amountOut ? Number(res.amountOut) : null,
+        },
+      });
+
+      const status = await waitForReceipt(res.txHash);
+      if (status === "success") {
+        setStep("confirmed");
+        await updateAttempt({ data: { id: attemptId, status: "success" } });
+        toast.success("Swap confirmed on Arc Testnet");
+      } else if (status === "failed") {
+        setStep("failed");
+        setStepErr("Transaction reverted on-chain");
+        await updateAttempt({ data: { id: attemptId, status: "failed", error: "reverted" } });
+        toast.error("Swap failed on-chain");
+      } else {
+        setStepErr("Timed out waiting for confirmation — check Arcscan");
+      }
     } catch (e: unknown) {
-      toast.error((e as Error).message ?? "Swap failed");
+      const msg = (e as Error).message ?? "Swap failed";
+      setStep("failed");
+      setStepErr(msg);
+      if (attemptId) {
+        try { await updateAttempt({ data: { id: attemptId, status: "failed", error: msg.slice(0, 500) } }); } catch { /* ignore */ }
+      }
+      toast.error(msg);
     } finally {
       setSwapping(false);
     }
   }
+
+  const quoteAgeSec = quoteAt ? Math.floor((Date.now() - quoteAt) / 1000) : null;
 
   return (
     <Modal onClose={onClose} title="Swap on Arc · Circle App Kit">
       <div className="space-y-3">
         <TokenPicker label="From" token={tokenIn} onChange={setTokenIn} tokens={TOKENS} amount={amount} onAmount={setAmount} />
         <div className="flex justify-center -my-1">
-          <button onClick={flip} className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-primary flex items-center justify-center">
+          <button onClick={flip} disabled={swapping} className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-primary flex items-center justify-center disabled:opacity-40">
             <ArrowLeftRight className="w-4 h-4" />
           </button>
         </div>
@@ -322,27 +404,56 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
             <>
               <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-mono">1 {tokenIn.symbol} ≈ {quote.rate.toFixed(6)} {tokenOut.symbol}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Min received</span><span className="font-mono">{Number(quote.stopLimit).toFixed(6)} {tokenOut.symbol}</span></div>
-              {quote.fees.slice(0, 3).map((f, i) => (
+              <div className="flex justify-between"><span className="text-muted-foreground">Network gas</span><span className="font-mono">{gasGwei != null ? `${gasGwei.toFixed(2)} gwei` : "—"}</span></div>
+              {quote.fees.slice(0, 2).map((f, i) => (
                 <div key={i} className="flex justify-between"><span className="text-muted-foreground">Fee{f.type ? ` (${f.type})` : ""}</span><span className="font-mono">{Number(f.amount).toFixed(6)} {f.token}</span></div>
               ))}
-              <div className="flex justify-between"><span className="text-muted-foreground">Route</span><span className="font-mono">{quote.route}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Quote age</span><span className="font-mono">{quoteAgeSec ?? 0}s (auto-refresh 12s)</span></div>
             </>
           )}
           {!loading && !err && !quote && <p className="text-muted-foreground">Enter an amount to see a live quote.</p>}
         </div>
+
+        {(swapping || step) && (
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 text-xs space-y-2">
+            <StepRow label="Refresh quote + gas" active={step === "quoting"} done={!!step && step !== "quoting" && step !== "failed"} />
+            <StepRow label="Approve + sign in wallet (permit)" active={step === "awaiting-signature"} done={step === "broadcasting" || step === "confirming" || step === "confirmed"} />
+            <StepRow label="Broadcast to Arc Testnet" active={step === "broadcasting"} done={step === "confirming" || step === "confirmed"} />
+            <StepRow label="Wait for confirmation" active={step === "confirming"} done={step === "confirmed"} />
+            {txHash && (
+              <a href={`https://testnet.arcscan.app/tx/${txHash}`} target="_blank" rel="noreferrer"
+                className="flex items-center gap-1 text-primary hover:underline font-mono break-all">
+                {txHash.slice(0, 20)}… <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
+            )}
+            {stepErr && <p className="text-destructive break-words">{stepErr}</p>}
+            {step === "confirmed" && <p className="text-success">Confirmed on-chain.</p>}
+          </div>
+        )}
 
         <button
           onClick={execute}
           disabled={!quote || loading || swapping}
           className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50"
         >
-          {swapping ? "Confirm in wallet…" : `Swap ${tokenIn.symbol} → ${tokenOut.symbol}`}
+          {swapping ? "Processing…" : `Swap ${tokenIn.symbol} → ${tokenOut.symbol}`}
         </button>
         <p className="text-[10px] text-muted-foreground text-center">
-          Real on-chain swap on Arc Testnet via Circle App Kit. Your wallet will prompt an approve + swap signature — needs USDC on Arc Testnet for gas.
+          Quote + gas are re-fetched right before you confirm. Approve + swap happen atomically via permit; your wallet will prompt one signature.
         </p>
       </div>
     </Modal>
+  );
+}
+
+function StepRow({ label, active, done }: { label: string; active: boolean; done: boolean }) {
+  const color = done ? "text-success" : active ? "text-neon" : "text-muted-foreground";
+  const dot = done ? "bg-success" : active ? "bg-primary animate-pulse" : "bg-zinc-700";
+  return (
+    <div className={`flex items-center gap-2 ${color}`}>
+      <span className={`w-2 h-2 rounded-full ${dot}`} />
+      <span>{label}</span>
+    </div>
   );
 }
 
