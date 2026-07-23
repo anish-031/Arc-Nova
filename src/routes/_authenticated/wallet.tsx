@@ -256,9 +256,9 @@ function Field({ label, value, onChange, ...rest }: { label: string; value: stri
 
 function SwapDialog({ onClose }: { onClose: () => void }) {
   const [tokenIn, setTokenIn] = useState<Token>(TOKENS[0]);
-  const [tokenOut, setTokenOut] = useState(TOKENS[1]);
+  const [tokenOut, setTokenOut] = useState<Token>(TOKENS[1]);
   const [amount, setAmount] = useState("1");
-  const [quote, setQuote] = useState<Awaited<ReturnType<typeof getQuote>> | null>(null);
+  const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
