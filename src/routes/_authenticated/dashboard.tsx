@@ -97,7 +97,7 @@ function DashboardPage() {
 
 
   if (loading || !profile) {
-    return <div className="max-w-7xl mx-auto px-6 py-12 font-display text-muted-foreground">// LOADING TERMINAL...</div>;
+    return <div className="max-w-7xl mx-auto px-6 py-12 font-display text-muted-foreground">LOADING TERMINAL...</div>;
   }
 
   const xpForNext = profile.level * 1000;
@@ -215,7 +215,7 @@ function DashboardPage() {
 function Panel({ label, value, accent, children }: { label: string; value: string; accent?: boolean; children?: React.ReactNode }) {
   return (
     <div className="panel border border-zinc-800 rounded-lg p-5 hover:border-primary transition-colors">
-      <p className="font-display text-[10px] tracking-widest text-muted-foreground">// {label}</p>
+      <p className="font-display text-[10px] tracking-widest text-muted-foreground">{label}</p>
       <p className={`mt-2 text-3xl font-bold ${accent ? "text-accent" : "text-neon"}`}>{value}</p>
       {children}
     </div>

@@ -75,7 +75,7 @@ function SettingsPage() {
   return (
     <main className="max-w-4xl mx-auto px-6 py-10 space-y-8">
       <div>
-        <p className="font-display text-xs tracking-widest text-muted-foreground">// SETTINGS</p>
+        <p className="font-display text-xs tracking-widest text-muted-foreground">SETTINGS</p>
         <h1 className="text-3xl font-bold mt-1">Preferences</h1>
         <p className="text-sm text-muted-foreground mt-1">Customize your ARC NOVA experience.</p>
       </div>
@@ -225,7 +225,7 @@ function Section({ title, desc, children }: { title: string; desc?: string; chil
   return (
     <section className="panel border border-border rounded-lg p-6 space-y-4">
       <div>
-        <h2 className="font-display tracking-widest text-sm text-muted-foreground">// {title}</h2>
+        <h2 className="font-display tracking-widest text-sm text-muted-foreground">{title}</h2>
         {desc && <p className="text-xs text-muted-foreground mt-1">{desc}</p>}
       </div>
       <div className="space-y-3">{children}</div>

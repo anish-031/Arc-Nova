@@ -26,7 +26,7 @@ function AdminPage() {
     <main className="max-w-7xl mx-auto px-6 py-10">
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
-          <p className="font-display text-xs tracking-widest text-accent">// ADMIN COMMAND CENTER</p>
+          <p className="font-display text-xs tracking-widest text-accent">ADMIN COMMAND CENTER</p>
           <h1 className="text-3xl font-bold mt-1">Operations</h1>
         </div>
       </div>
@@ -199,7 +199,7 @@ function UsersTab() {
 function EmailTab() {
   return (
     <div className="panel border border-zinc-800 rounded-lg p-6 max-w-2xl">
-      <p className="font-display text-xs tracking-widest text-accent">// GMAIL DISPATCHER</p>
+      <p className="font-display text-xs tracking-widest text-accent">GMAIL DISPATCHER</p>
       <h3 className="text-xl font-semibold mt-2">Order Confirmation Email</h3>
       <p className="text-sm text-muted-foreground mt-2">
         When you click <span className="text-success">Confirm</span> on any pending order in the Orders tab,
@@ -267,7 +267,7 @@ function CreateTab() {
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <form onSubmit={submitProduct} className="panel border border-zinc-800 rounded-lg p-6 space-y-4">
-        <h3 className="font-display text-xs tracking-widest text-accent">// ADD PRODUCT</h3>
+        <h3 className="font-display text-xs tracking-widest text-accent">ADD PRODUCT</h3>
         <FormInput label="Name" value={pName} onChange={setPName} required />
         <div>
           <label className="block text-xs font-display tracking-widest text-muted-foreground mb-1">TYPE</label>
@@ -284,7 +284,7 @@ function CreateTab() {
       </form>
 
       <form onSubmit={submitQuest} className="panel border border-zinc-800 rounded-lg p-6 space-y-4">
-        <h3 className="font-display text-xs tracking-widest text-accent">// ADD QUEST</h3>
+        <h3 className="font-display text-xs tracking-widest text-accent">ADD QUEST</h3>
         <FormInput label="Quest ID" value={qId} onChange={setQId} required placeholder="daily_login" />
         <FormInput label="Title" value={qTitle} onChange={setQTitle} required />
         <FormInput label="Max progress" value={qMax} onChange={setQMax} type="number" required />
