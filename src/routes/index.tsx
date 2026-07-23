@@ -25,7 +25,7 @@ function Landing() {
       </header>
 
       <section className="max-w-6xl mx-auto px-6 py-24">
-        <p className="font-display text-xs tracking-[0.3em] text-muted-foreground mb-4">// SYSTEM ONLINE</p>
+        <p className="font-display text-xs tracking-[0.3em] text-muted-foreground mb-4">SYSTEM ONLINE</p>
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
           Plug into the <span className="text-neon">grid</span>.<br/>
           Trade on <span className="text-accent">Arc</span>.
