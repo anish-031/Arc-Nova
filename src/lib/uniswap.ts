@@ -159,7 +159,7 @@ export async function getQuote(
     amountOut: est.estimatedOutput?.amount ?? "0",
     stopLimit: est.stopLimit?.amount ?? "0",
     rate: out / amt,
-    fees: (est.fees ?? []).map((f) => ({ token: f.token, amount: f.amount, type: (f as { type?: string }).type })),
+    fees: (est.fees ?? []).map((f) => ({ token: f.token, amount: f.amount ?? "0", type: (f as { type?: string }).type })),
     route: `${tokenIn.symbol} → ${tokenOut.symbol} (Circle Swap · Arc Testnet)`,
   };
 }
