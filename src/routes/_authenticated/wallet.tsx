@@ -124,7 +124,7 @@ function WalletPage() {
             </div>
             <div className="mt-6 text-center">
               <p className="text-xs text-muted-foreground">Total Balance</p>
-              <p className="text-4xl font-bold text-neon mt-1">${(usd ?? 0).toFixed(2)}</p>
+              <p className="text-4xl font-bold text-neon mt-1">${usd.toFixed(2)}</p>
             </div>
             <div className="grid grid-cols-3 gap-2 mt-6">
               <ActionBtn onClick={() => setSendOpen(true)} icon={<ArrowUpRight />} label="Send" />
@@ -132,9 +132,9 @@ function WalletPage() {
               <ActionBtn onClick={() => setSwapOpen(true)} icon={<ArrowLeftRight />} label="Swap" />
             </div>
             <div className="mt-6 space-y-2">
-              <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
-              <TokenRow symbol="EURC" name="Euro Coin" amount={0} usd={0} color="bg-indigo-500" />
-              <TokenRow symbol="cBTC" name="Circle Bitcoin (coming soon)" amount={0} usd={0} color="bg-orange-500" />
+              <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={usdcBal} usd={usdcBal} color="bg-blue-500" />
+              <TokenRow symbol="EURC" name="Euro Coin" amount={eurcBal} usd={eurcBal} color="bg-indigo-500" />
+              <TokenRow symbol="cBTC" name={ARC_TOKENS.cBTC.address ? "Circle Bitcoin" : "Circle Bitcoin (coming soon)"} amount={btcBal} usd={0} color="bg-orange-500" />
             </div>
             <div className="mt-4 flex justify-center gap-4 text-xs">
               <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">Get Testnet USDC <ExternalLink className="w-3 h-3" /></a>
