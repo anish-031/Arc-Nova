@@ -18,6 +18,7 @@ function WalletPage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [sendOpen, setSendOpen] = useState(false);
   const [receiveOpen, setReceiveOpen] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
 
   const usd = eth != null ? eth * 1 : null; // 1 ARC ≈ $1 testnet placeholder
 
@@ -95,7 +96,7 @@ function WalletPage() {
             <div className="grid grid-cols-3 gap-2 mt-6">
               <ActionBtn onClick={() => setSendOpen(true)} icon={<ArrowUpRight />} label="Send" />
               <ActionBtn onClick={() => setReceiveOpen(true)} icon={<ArrowDownLeft />} label="Receive" />
-              <ActionBtn onClick={() => toast.info("Swap routing coming soon")} icon={<ArrowLeftRight />} label="Swap" />
+              <ActionBtn onClick={() => setSwapOpen(true)} icon={<ArrowLeftRight />} label="Swap" />
             </div>
             <div className="mt-6 space-y-2">
               <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
@@ -139,6 +140,7 @@ function WalletPage() {
 
       {sendOpen && <SendDialog onClose={() => { setSendOpen(false); refresh(); }} />}
       {receiveOpen && <ReceiveDialog address={address} onClose={() => setReceiveOpen(false)} />}
+      {swapOpen && <SwapDialog onClose={() => setSwapOpen(false)} />}
     </main>
   );
 }
