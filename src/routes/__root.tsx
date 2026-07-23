@@ -78,14 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "ARC NOVA — Cyberpunk Web3 Marketplace" },
+      { name: "description", content: "ARC NOVA is a gamified Web3 marketplace on Arc Network. Connect your wallet, trade assets, earn XP and level up." },
+      { name: "author", content: "ARC NOVA" },
+      { property: "og:title", content: "ARC NOVA — Cyberpunk Web3 Marketplace" },
+      { property: "og:description", content: "Connect your wallet on Arc Network. Trade, earn XP, and level up in the ARC NOVA grid." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@arcnova" },
     ],
     links: [
       {
