@@ -157,9 +157,9 @@ function WalletPage() {
 
       {tab === "tokens" && (
         <section className="panel border border-zinc-800 rounded-xl p-6 space-y-2">
-          <TokenRow symbol="USDC" name="USD Coin (native)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
-          <TokenRow symbol="EURC" name="Euro Coin" amount={0} usd={0} color="bg-indigo-500" />
-          <TokenRow symbol="cBTC" name="Circle Bitcoin (coming soon)" amount={0} usd={0} color="bg-orange-500" />
+          <TokenRow symbol="USDC" name="USD Coin (native)" amount={usdcBal} usd={usdcBal} color="bg-blue-500" />
+          <TokenRow symbol="EURC" name="Euro Coin" amount={eurcBal} usd={eurcBal} color="bg-indigo-500" />
+          <TokenRow symbol="cBTC" name={ARC_TOKENS.cBTC.address ? "Circle Bitcoin" : "Circle Bitcoin (coming soon)"} amount={btcBal} usd={0} color="bg-orange-500" />
         </section>
       )}
 
