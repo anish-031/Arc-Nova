@@ -35,7 +35,6 @@ function Landing() {
         </p>
         <div className="mt-10 flex gap-3">
           <Link to="/auth" className="px-5 py-3 rounded bg-primary text-primary-foreground font-medium glow-border hover:opacity-90 transition-opacity">Enter the Network</Link>
-          <Link to="/store" className="px-5 py-3 rounded border border-zinc-800 hover:border-primary transition-all">Browse Store</Link>
         </div>
       </section>
 
