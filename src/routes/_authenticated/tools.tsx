@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useWallet, ARC_NETWORK } from "@/hooks/use-wallet";
 import { ARC_TESTNET, ARC_TOKENS, USDC_DECIMALS } from "@/lib/arc";
 import {
@@ -8,7 +8,7 @@ import {
 } from "@/lib/arc-rpc";
 import {
   Droplet, Wallet as WalletIcon, Fuel, History, Activity,
-  ExternalLink, Search, RefreshCw, Wallet, CheckCircle2, XCircle, Copy, Clock,
+  ExternalLink, Search, RefreshCw, Wallet, CheckCircle2, XCircle, Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 
