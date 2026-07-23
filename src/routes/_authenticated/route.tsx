@@ -94,14 +94,12 @@ function AuthedLayout() {
           )}
         </nav>
         <div className="p-2 border-t border-zinc-800 space-y-1">
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-zinc-900 transition-colors">
+          <Link to="/settings"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-zinc-900 transition-colors"
+            activeProps={{ className: "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-gradient-to-r from-primary/20 to-accent/10 text-neon border border-primary/30" }}>
             <Settings className="w-4 h-4 shrink-0" />
             {!collapsed && <span>Settings</span>}
-          </button>
-          <button onClick={signOut} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-zinc-900 transition-colors">
-            <LogOut className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>Sign out</span>}
-          </button>
+          </Link>
         </div>
       </aside>
 
