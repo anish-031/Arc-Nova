@@ -58,7 +58,7 @@ function AuthedLayout() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast?.error?.("Copy failed");
+      toast.error("Copy failed");
     }
   }
 
