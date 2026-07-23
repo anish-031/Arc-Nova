@@ -43,7 +43,7 @@ function MarketplacePage() {
 
   return (
     <main className="relative max-w-7xl mx-auto px-6 py-10">
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/20 backdrop-blur-2xl backdrop-saturate-50 backdrop-brightness-75 rounded-lg pointer-events-auto">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/35 backdrop-blur-lg backdrop-saturate-[0.2] backdrop-brightness-[0.85] rounded-lg pointer-events-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-neon tracking-tight">Coming Soon After Mainnet</h2>
         <p className="mt-2 text-sm text-zinc-300 text-center">The gift card marketplace will be unlocked once the Arc network is live.</p>
       </div>
