@@ -6,7 +6,7 @@ import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, E
 import { toast } from "sonner";
 import { TOKENS, getQuote, executeSwap, getGasPriceGwei, waitForReceipt, type Token, type Quote, type SwapStep } from "@/lib/uniswap";
 import { useServerFn } from "@tanstack/react-start";
-import { createSwapAttempt, updateSwapAttempt } from "@/lib/swaps.functions";
+import { createSwapAttempt, updateSwapAttempt, listSwapAttempts } from "@/lib/swaps.functions";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
