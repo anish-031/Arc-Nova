@@ -6,6 +6,12 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import path from "node:path";
+
+const rpcWsBrowser = path.resolve(
+  process.cwd(),
+  "node_modules/rpc-websockets/dist/index.browser.mjs",
+);
 
 export default defineConfig({
   tanstackStart: {
@@ -20,8 +26,8 @@ export default defineConfig({
     ],
     resolve: {
       alias: {
-        "rpc-websockets/dist/lib/client": "rpc-websockets/dist/index.browser.mjs",
-        "rpc-websockets": "rpc-websockets/dist/index.browser.mjs",
+        "rpc-websockets/dist/lib/client": rpcWsBrowser,
+        "rpc-websockets": rpcWsBrowser,
       },
     },
   },
