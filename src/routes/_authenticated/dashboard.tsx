@@ -4,10 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { healProfile, type Profile } from "@/lib/profile";
 import { useWallet } from "@/hooks/use-wallet";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { listSwapAttempts, updateSwapAttempt } from "@/lib/swaps.functions";
-import { waitForReceipt } from "@/lib/uniswap";
-import { ExternalLink, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — ARC NOVA" }] }),
@@ -24,48 +20,25 @@ type Purchase = {
   tx_hash: string | null;
 };
 
-type SwapRow = {
-  id: string;
-  token_in: string;
-  token_out: string;
-  amount_in: number;
-  amount_out: number | null;
-  min_received: number | null;
-  tx_hash: string | null;
-  explorer_url: string | null;
-  status: string;
-  error: string | null;
-  gas_gwei: number | null;
-  created_at: string;
-};
-
 function DashboardPage() {
   const { user } = Route.useRouteContext();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [swaps, setSwaps] = useState<SwapRow[]>([]);
   const [loading, setLoading] = useState(true);
   const { address } = useWallet();
-
-  const fetchSwaps = useServerFn(listSwapAttempts);
-  const patchSwap = useServerFn(updateSwapAttempt);
 
   async function load(walletAddr?: string | null) {
     setLoading(true);
     try {
       const p = await healProfile(user, walletAddr ?? address ?? null);
       setProfile(p);
-      const [{ data: orders }, swapRows] = await Promise.all([
-        supabase
-          .from("purchases")
-          .select("id,product_name,product_type,price,status,created_at,tx_hash")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(10),
-        fetchSwaps().catch(() => [] as SwapRow[]),
-      ]);
+      const { data: orders } = await supabase
+        .from("purchases")
+        .select("id,product_name,product_type,price,status,created_at,tx_hash")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
       setPurchases((orders ?? []) as Purchase[]);
-      setSwaps(swapRows as SwapRow[]);
     } catch (e: unknown) {
       const err = e as { message?: string };
       toast.error(err.message ?? "Failed to load profile");
@@ -76,24 +49,7 @@ function DashboardPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [user.id]);
 
-  // Poll on-chain status for any swap still pending/broadcast.
-  useEffect(() => {
-    const inflight = swaps.filter((s) => (s.status === "pending" || s.status === "broadcast") && s.tx_hash);
-    if (inflight.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      for (const s of inflight) {
-        const res = await waitForReceipt(s.tx_hash!, { intervalMs: 4000, timeoutMs: 120_000 });
-        if (cancelled || !res) continue;
-        try {
-          await patchSwap({ data: { id: s.id, status: res } });
-          setSwaps((prev) => prev.map((r) => (r.id === s.id ? { ...r, status: res } : r)));
-        } catch { /* ignore */ }
-      }
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swaps.map((s) => `${s.id}:${s.status}`).join(",")]);
+
 
 
   if (loading || !profile) {
@@ -156,52 +112,6 @@ function DashboardPage() {
                   <td className="px-4 py-3">
                     <StatusPill status={p.status} />
                   </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display tracking-widest text-sm text-muted-foreground">RECENT SWAPS</h2>
-          <button onClick={() => load()} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-            <RefreshCw className="w-3 h-3" /> Refresh
-          </button>
-        </div>
-        <div className="panel border border-zinc-800 rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-900/60 text-xs font-display tracking-widest text-muted-foreground">
-              <tr>
-                <th className="text-left px-4 py-2">PAIR</th>
-                <th className="text-left px-4 py-2">AMOUNT</th>
-                <th className="text-left px-4 py-2">MIN OUT</th>
-                <th className="text-left px-4 py-2">GAS</th>
-                <th className="text-left px-4 py-2">TX</th>
-                <th className="text-left px-4 py-2">DATE</th>
-                <th className="text-left px-4 py-2">STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {swaps.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">No swaps yet. Open the wallet and swap on Arc Testnet.</td></tr>
-              )}
-              {swaps.map((s) => (
-                <tr key={s.id} className="border-t border-zinc-800 hover:bg-zinc-900/40">
-                  <td className="px-4 py-3 font-mono">{s.token_in} → {s.token_out}</td>
-                  <td className="px-4 py-3 font-mono">{Number(s.amount_in).toFixed(4)}</td>
-                  <td className="px-4 py-3 font-mono text-muted-foreground">{s.min_received != null ? Number(s.min_received).toFixed(6) : "—"}</td>
-                  <td className="px-4 py-3 font-mono text-muted-foreground">{s.gas_gwei != null ? `${Number(s.gas_gwei).toFixed(1)} gwei` : "—"}</td>
-                  <td className="px-4 py-3 font-display text-xs">
-                    {s.tx_hash ? (
-                      <a href={s.explorer_url ?? `https://testnet.arcscan.app/tx/${s.tx_hash}`} target="_blank" rel="noreferrer"
-                        className="text-primary hover:underline inline-flex items-center gap-1">
-                        {s.tx_hash.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{new Date(s.created_at).toLocaleString()}</td>
-                  <td className="px-4 py-3"><StatusPill status={s.status} /></td>
                 </tr>
               ))}
             </tbody>

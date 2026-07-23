@@ -6,7 +6,7 @@ import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, E
 import { toast } from "sonner";
 import { TOKENS, getQuote, executeSwap, getGasPriceGwei, waitForReceipt, type Token, type Quote, type SwapStep } from "@/lib/uniswap";
 import { useServerFn } from "@tanstack/react-start";
-import { createSwapAttempt, updateSwapAttempt } from "@/lib/swaps.functions";
+import { createSwapAttempt, updateSwapAttempt, listSwapAttempts } from "@/lib/swaps.functions";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
@@ -133,13 +133,7 @@ function WalletPage() {
         </section>
       )}
 
-      {tab === "history" && (
-        <section className="panel border border-zinc-800 rounded-xl p-6">
-          <p className="text-sm text-muted-foreground">Network gas price: <span className="text-neon font-mono">{gasGwei?.toFixed(2) ?? "—"} gwei</span></p>
-          <p className="text-sm text-muted-foreground mt-1">Nonce: <span className="text-neon font-mono">{txCount ?? "—"}</span></p>
-          <p className="mt-6 text-center text-muted-foreground text-sm">Full transaction history will populate from explorer indexing.</p>
-        </section>
-      )}
+      {tab === "history" && <SwapHistory />}
 
       {sendOpen && <SendDialog onClose={() => { setSendOpen(false); refresh(); }} />}
       {receiveOpen && <ReceiveDialog address={address} onClose={() => setReceiveOpen(false)} />}
@@ -495,4 +489,113 @@ function TokenPicker({
       />
     </div>
   );
+}
+
+type SwapRow = {
+  id: string;
+  token_in: string;
+  token_out: string;
+  amount_in: number;
+  amount_out: number | null;
+  min_received: number | null;
+  tx_hash: string | null;
+  explorer_url: string | null;
+  status: string;
+  error: string | null;
+  gas_gwei: number | null;
+  created_at: string;
+};
+
+function SwapHistory() {
+  const [swaps, setSwaps] = useState<SwapRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const fetchSwaps = useServerFn(listSwapAttempts);
+  const patchSwap = useServerFn(updateSwapAttempt);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const rows = await fetchSwaps().catch(() => [] as SwapRow[]);
+      setSwaps(rows as SwapRow[]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  useEffect(() => {
+    const inflight = swaps.filter((s) => (s.status === "pending" || s.status === "broadcast") && s.tx_hash);
+    if (inflight.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      for (const s of inflight) {
+        const res = await waitForReceipt(s.tx_hash!, { intervalMs: 4000, timeoutMs: 120_000 });
+        if (cancelled || !res) continue;
+        try {
+          await patchSwap({ data: { id: s.id, status: res } });
+          setSwaps((prev) => prev.map((r) => (r.id === s.id ? { ...r, status: res } : r)));
+        } catch { /* ignore */ }
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [swaps.map((s) => `${s.id}:${s.status}`).join(",")]);
+
+  return (
+    <section className="panel border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
+        <h3 className="font-display tracking-widest text-sm text-muted-foreground">SWAP HISTORY</h3>
+        <button onClick={load} disabled={loading} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 disabled:opacity-50">
+          <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} /> Refresh
+        </button>
+      </div>
+      <table className="w-full text-sm">
+        <thead className="bg-zinc-900/60 text-xs font-display tracking-widest text-muted-foreground">
+          <tr>
+            <th className="text-left px-4 py-2">PAIR</th>
+            <th className="text-left px-4 py-2">AMOUNT</th>
+            <th className="text-left px-4 py-2">MIN OUT</th>
+            <th className="text-left px-4 py-2">GAS</th>
+            <th className="text-left px-4 py-2">TX</th>
+            <th className="text-left px-4 py-2">DATE</th>
+            <th className="text-left px-4 py-2">STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {swaps.length === 0 && (
+            <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">No swaps yet. Use the Swap action above to trade on Arc Testnet.</td></tr>
+          )}
+          {swaps.map((s) => (
+            <tr key={s.id} className="border-t border-zinc-800 hover:bg-zinc-900/40">
+              <td className="px-4 py-3 font-mono">{s.token_in} → {s.token_out}</td>
+              <td className="px-4 py-3 font-mono">{Number(s.amount_in).toFixed(4)}</td>
+              <td className="px-4 py-3 font-mono text-muted-foreground">{s.min_received != null ? Number(s.min_received).toFixed(6) : "—"}</td>
+              <td className="px-4 py-3 font-mono text-muted-foreground">{s.gas_gwei != null ? `${Number(s.gas_gwei).toFixed(1)} gwei` : "—"}</td>
+              <td className="px-4 py-3 font-display text-xs">
+                {s.tx_hash ? (
+                  <a href={s.explorer_url ?? `https://testnet.arcscan.app/tx/${s.tx_hash}`} target="_blank" rel="noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-1">
+                    {s.tx_hash.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
+                  </a>
+                ) : "—"}
+              </td>
+              <td className="px-4 py-3 text-muted-foreground">{new Date(s.created_at).toLocaleString()}</td>
+              <td className="px-4 py-3"><SwapStatusPill status={s.status} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function SwapStatusPill({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    pending: "border-warning/40 text-warning",
+    broadcast: "border-warning/40 text-warning",
+    success: "border-success/40 text-success",
+    failed: "border-destructive/40 text-destructive",
+  };
+  return <span className={`px-2 py-0.5 rounded border text-xs font-display uppercase ${map[status] ?? "border-zinc-700 text-muted-foreground"}`}>{status}</span>;
 }
