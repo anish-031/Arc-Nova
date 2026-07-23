@@ -133,13 +133,7 @@ function WalletPage() {
         </section>
       )}
 
-      {tab === "history" && (
-        <section className="panel border border-zinc-800 rounded-xl p-6">
-          <p className="text-sm text-muted-foreground">Network gas price: <span className="text-neon font-mono">{gasGwei?.toFixed(2) ?? "—"} gwei</span></p>
-          <p className="text-sm text-muted-foreground mt-1">Nonce: <span className="text-neon font-mono">{txCount ?? "—"}</span></p>
-          <p className="mt-6 text-center text-muted-foreground text-sm">Full transaction history will populate from explorer indexing.</p>
-        </section>
-      )}
+      {tab === "history" && <SwapHistory />}
 
       {sendOpen && <SendDialog onClose={() => { setSendOpen(false); refresh(); }} />}
       {receiveOpen && <ReceiveDialog address={address} onClose={() => setReceiveOpen(false)} />}
