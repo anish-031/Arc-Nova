@@ -90,6 +90,15 @@ export function useWallet() {
           throw err;
         }
       }
+      // Prove wallet ownership with a signature challenge.
+      const message = `ARC NOVA — Sign in to verify wallet ownership.\n\nAddress: ${addr}\nNonce: ${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+      try {
+        await window.ethereum.request({ method: "personal_sign", params: [message, addr] });
+      } catch (sigErr: unknown) {
+        const c = (sigErr as { code?: number })?.code;
+        if (c === 4001) throw new Error("Signature declined — wallet not linked");
+        throw sigErr;
+      }
       setAddress(addr);
       toast.success("Wallet linked to Arc Network");
       return addr;
