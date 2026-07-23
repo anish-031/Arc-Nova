@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { healProfile, type Profile } from "@/lib/profile";
 import { useWallet } from "@/hooks/use-wallet";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { listSwapAttempts, updateSwapAttempt } from "@/lib/swaps.functions";
+import { waitForReceipt } from "@/lib/uniswap";
+import { ExternalLink, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — ARC NOVA" }] }),
@@ -18,6 +22,21 @@ type Purchase = {
   status: string;
   created_at: string;
   tx_hash: string | null;
+};
+
+type SwapRow = {
+  id: string;
+  token_in: string;
+  token_out: string;
+  amount_in: number;
+  amount_out: number | null;
+  min_received: number | null;
+  tx_hash: string | null;
+  explorer_url: string | null;
+  status: string;
+  error: string | null;
+  gas_gwei: number | null;
+  created_at: string;
 };
 
 function DashboardPage() {
