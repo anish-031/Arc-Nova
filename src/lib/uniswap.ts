@@ -164,11 +164,56 @@ export async function getQuote(
   };
 }
 
+export type SwapStep =
+  | "quoting"
+  | "awaiting-signature"
+  | "broadcasting"
+  | "confirming"
+  | "confirmed"
+  | "failed";
+
+export async function getGasPriceGwei(): Promise<number | null> {
+  try {
+    const eth = getEth();
+    const hex = (await eth.request({ method: "eth_gasPrice" })) as string;
+    return parseInt(hex, 16) / 1e9;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Wait for a tx receipt on Arc Testnet by polling the connected wallet's RPC.
+ * Returns "success" (status 0x1), "failed" (0x0), or null on timeout.
+ */
+export async function waitForReceipt(
+  txHash: string,
+  { intervalMs = 3000, timeoutMs = 180_000 }: { intervalMs?: number; timeoutMs?: number } = {},
+): Promise<"success" | "failed" | null> {
+  const eth = getEth();
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    try {
+      const r = (await eth.request({
+        method: "eth_getTransactionReceipt",
+        params: [txHash],
+      })) as { status?: string } | null;
+      if (r && r.status) return r.status === "0x1" ? "success" : "failed";
+    } catch {
+      // fall through and retry
+    }
+    await new Promise((res) => setTimeout(res, intervalMs));
+  }
+  return null;
+}
+
 export async function executeSwap(
   tokenIn: Token,
   tokenOut: Token,
   amountIn: string,
+  onStep?: (step: SwapStep, detail?: string) => void,
 ): Promise<SwapExecResult> {
+  onStep?.("awaiting-signature", "Signing permit + swap in wallet");
   const { createSwapKitContext, swap, SwapChain } = await loadKit();
   const adapter = await buildAdapter();
   const ctx = createSwapKitContext();
@@ -185,6 +230,7 @@ export async function executeSwap(
     },
   });
 
+  onStep?.("broadcasting", result.txHash);
   const explorer = result.txHash
     ? `https://testnet.arcscan.app/tx/${result.txHash}`
     : undefined;
