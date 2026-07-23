@@ -111,8 +111,17 @@ export function useWallet() {
     }
   }, []);
 
-  const disconnect = useCallback(() => {
+  const disconnect = useCallback(async () => {
     setAddress(null);
+    // Try to revoke MetaMask account permission so the next connect forces a fresh prompt + signature.
+    try {
+      await window.ethereum?.request({
+        method: "wallet_revokePermissions",
+        params: [{ eth_accounts: {} }],
+      });
+    } catch {
+      // Older wallets don't support wallet_revokePermissions — safe to ignore.
+    }
     toast.success("Wallet disconnected");
   }, []);
 
