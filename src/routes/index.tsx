@@ -45,7 +45,7 @@ function Landing() {
           { t: "Marketplace", d: "List, browse and trade digital goods." },
         ].map((f) => (
           <div key={f.t} className="panel border border-zinc-800 rounded-lg p-6 hover:border-primary transition-colors">
-            <p className="font-display text-xs text-muted-foreground mb-2">// MODULE</p>
+            <p className="font-display text-xs text-muted-foreground mb-2">MODULE</p>
             <h3 className="text-xl font-semibold text-neon">{f.t}</h3>
             <p className="mt-2 text-sm text-muted-foreground">{f.d}</p>
           </div>
