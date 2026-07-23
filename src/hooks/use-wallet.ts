@@ -53,8 +53,21 @@ export function useWallet() {
     }
     setConnecting(true);
     try {
+      // Force MetaMask to prompt account selection every time, even after a prior connect.
+      try {
+        await window.ethereum.request({
+          method: "wallet_requestPermissions",
+          params: [{ eth_accounts: {} }],
+        });
+      } catch (permErr: unknown) {
+        const c = (permErr as { code?: number })?.code;
+        // 4001 = user rejected the permission prompt.
+        if (c === 4001) throw permErr;
+        // Older wallets may not support wallet_requestPermissions — fall through to eth_requestAccounts.
+      }
       const accs = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
       const addr = accs[0]?.toLowerCase() ?? null;
+      if (!addr) throw new Error("No account selected");
       // Only switch/add Arc when the wallet is not already on the expected chain.
       try {
         const current = ((await window.ethereum.request({ method: "eth_chainId" })) as string).toLowerCase();
