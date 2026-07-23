@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { TOKENS, getQuote, executeSwap, getGasPriceGwei, waitForReceipt, type Token, type Quote, type SwapStep } from "@/lib/uniswap";
 import { useServerFn } from "@tanstack/react-start";
 import { createSwapAttempt, updateSwapAttempt, listSwapAttempts } from "@/lib/swaps.functions";
-import { scanTxList, fmtUnits, type ScanTx } from "@/lib/arc-rpc";
+import { scanTxList, fmtUnits, getErc20Balance, type ScanTx } from "@/lib/arc-rpc";
+import { ARC_TOKENS } from "@/lib/arc";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
@@ -23,8 +24,36 @@ function WalletPage() {
   const [sendOpen, setSendOpen] = useState(false);
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
+  const [erc20, setErc20] = useState<{ USDC: number; EURC: number; cBTC: number }>({ USDC: 0, EURC: 0, cBTC: 0 });
 
-  const usd = eth != null ? eth * 1 : null; // 1 ARC ≈ $1 testnet placeholder
+  useEffect(() => {
+    if (!address) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        (Object.entries(ARC_TOKENS) as [keyof typeof ARC_TOKENS, typeof ARC_TOKENS[keyof typeof ARC_TOKENS]][]).map(async ([sym, t]) => {
+          if (!t.address) return [sym, 0] as const;
+          try {
+            const wei = await getErc20Balance(t.address, address);
+            return [sym, Number(wei) / 10 ** t.decimals] as const;
+          } catch {
+            return [sym, 0] as const;
+          }
+        })
+      );
+      if (cancelled) return;
+      const next = { USDC: 0, EURC: 0, cBTC: 0 };
+      for (const [sym, val] of entries) next[sym] = val;
+      setErc20(next);
+    })();
+    return () => { cancelled = true; };
+  }, [address, loading]);
+
+  // Native gas token on Arc is USDC (18 decimals) — treat it as the spendable USDC balance.
+  const usdcBal = eth ?? 0;
+  const eurcBal = erc20.EURC;
+  const btcBal = erc20.cBTC;
+  const usd = usdcBal + eurcBal; // testnet placeholder: 1 USDC ≈ 1 EURC ≈ $1
 
   function copy() {
     if (!address) return;
@@ -66,7 +95,7 @@ function WalletPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat icon={<WalletIcon className="text-primary" />} label="Total Balance" value={usd != null ? `$${usd.toFixed(2)}` : "—"} />
+        <Stat icon={<WalletIcon className="text-primary" />} label="Total Balance" value={`$${usd.toFixed(2)}`} />
         <Stat icon={<TrendingUp className="text-success" />} label="Received" value="0" />
         <Stat icon={<TrendingDown className="text-destructive" />} label="Sent" value="0" />
         <Stat icon={<Activity className="text-accent" />} label="Total Tx" value={txCount?.toString() ?? "—"} />
@@ -95,7 +124,7 @@ function WalletPage() {
             </div>
             <div className="mt-6 text-center">
               <p className="text-xs text-muted-foreground">Total Balance</p>
-              <p className="text-4xl font-bold text-neon mt-1">${(usd ?? 0).toFixed(2)}</p>
+              <p className="text-4xl font-bold text-neon mt-1">${usd.toFixed(2)}</p>
             </div>
             <div className="grid grid-cols-3 gap-2 mt-6">
               <ActionBtn onClick={() => setSendOpen(true)} icon={<ArrowUpRight />} label="Send" />
@@ -103,9 +132,9 @@ function WalletPage() {
               <ActionBtn onClick={() => setSwapOpen(true)} icon={<ArrowLeftRight />} label="Swap" />
             </div>
             <div className="mt-6 space-y-2">
-              <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
-              <TokenRow symbol="EURC" name="Euro Coin" amount={0} usd={0} color="bg-indigo-500" />
-              <TokenRow symbol="cBTC" name="Circle Bitcoin (coming soon)" amount={0} usd={0} color="bg-orange-500" />
+              <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={usdcBal} usd={usdcBal} color="bg-blue-500" />
+              <TokenRow symbol="EURC" name="Euro Coin" amount={eurcBal} usd={eurcBal} color="bg-indigo-500" />
+              <TokenRow symbol="cBTC" name={ARC_TOKENS.cBTC.address ? "Circle Bitcoin" : "Circle Bitcoin (coming soon)"} amount={btcBal} usd={0} color="bg-orange-500" />
             </div>
             <div className="mt-4 flex justify-center gap-4 text-xs">
               <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">Get Testnet USDC <ExternalLink className="w-3 h-3" /></a>
@@ -128,9 +157,9 @@ function WalletPage() {
 
       {tab === "tokens" && (
         <section className="panel border border-zinc-800 rounded-xl p-6 space-y-2">
-          <TokenRow symbol="USDC" name="USD Coin (native)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
-          <TokenRow symbol="EURC" name="Euro Coin" amount={0} usd={0} color="bg-indigo-500" />
-          <TokenRow symbol="cBTC" name="Circle Bitcoin (coming soon)" amount={0} usd={0} color="bg-orange-500" />
+          <TokenRow symbol="USDC" name="USD Coin (native)" amount={usdcBal} usd={usdcBal} color="bg-blue-500" />
+          <TokenRow symbol="EURC" name="Euro Coin" amount={eurcBal} usd={eurcBal} color="bg-indigo-500" />
+          <TokenRow symbol="cBTC" name={ARC_TOKENS.cBTC.address ? "Circle Bitcoin" : "Circle Bitcoin (coming soon)"} amount={btcBal} usd={0} color="bg-orange-500" />
         </section>
       )}
 

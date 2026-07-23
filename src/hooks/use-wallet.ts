@@ -53,8 +53,21 @@ export function useWallet() {
     }
     setConnecting(true);
     try {
+      // Force MetaMask to prompt account selection every time, even after a prior connect.
+      try {
+        await window.ethereum.request({
+          method: "wallet_requestPermissions",
+          params: [{ eth_accounts: {} }],
+        });
+      } catch (permErr: unknown) {
+        const c = (permErr as { code?: number })?.code;
+        // 4001 = user rejected the permission prompt.
+        if (c === 4001) throw permErr;
+        // Older wallets may not support wallet_requestPermissions — fall through to eth_requestAccounts.
+      }
       const accs = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
       const addr = accs[0]?.toLowerCase() ?? null;
+      if (!addr) throw new Error("No account selected");
       // Only switch/add Arc when the wallet is not already on the expected chain.
       try {
         const current = ((await window.ethereum.request({ method: "eth_chainId" })) as string).toLowerCase();
@@ -77,6 +90,15 @@ export function useWallet() {
           throw err;
         }
       }
+      // Prove wallet ownership with a signature challenge.
+      const message = `ARC NOVA — Sign in to verify wallet ownership.\n\nAddress: ${addr}\nNonce: ${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+      try {
+        await window.ethereum.request({ method: "personal_sign", params: [message, addr] });
+      } catch (sigErr: unknown) {
+        const c = (sigErr as { code?: number })?.code;
+        if (c === 4001) throw new Error("Signature declined — wallet not linked");
+        throw sigErr;
+      }
       setAddress(addr);
       toast.success("Wallet linked to Arc Network");
       return addr;
@@ -89,8 +111,17 @@ export function useWallet() {
     }
   }, []);
 
-  const disconnect = useCallback(() => {
+  const disconnect = useCallback(async () => {
     setAddress(null);
+    // Try to revoke MetaMask account permission so the next connect forces a fresh prompt + signature.
+    try {
+      await window.ethereum?.request({
+        method: "wallet_revokePermissions",
+        params: [{ eth_accounts: {} }],
+      });
+    } catch {
+      // Older wallets don't support wallet_revokePermissions — safe to ignore.
+    }
     toast.success("Wallet disconnected");
   }, []);
 
