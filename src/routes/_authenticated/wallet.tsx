@@ -4,7 +4,7 @@ import { useWallet, ARC_NETWORK } from "@/hooks/use-wallet";
 import { useWalletBalance, sendNativeTx } from "@/hooks/use-wallet-balance";
 import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, ExternalLink, Wallet as WalletIcon, TrendingUp, TrendingDown, Activity, History } from "lucide-react";
 import { toast } from "sonner";
-import { TOKENS, getQuote, switchToBase, uniswapSwapUrl, type Token, type Quote } from "@/lib/uniswap";
+import { TOKENS, getQuote, executeSwap, type Token, type Quote } from "@/lib/uniswap";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
