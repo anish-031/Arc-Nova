@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWallet, ARC_NETWORK } from "@/hooks/use-wallet";
 import { useWalletBalance, sendNativeTx } from "@/hooks/use-wallet-balance";
 import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, ExternalLink, Wallet as WalletIcon, TrendingUp, TrendingDown, Activity, History } from "lucide-react";
 import { toast } from "sonner";
+import { TOKENS, getQuote, uniswapAppUrl, switchToMainnet, type Token, type Quote } from "@/lib/uniswap";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
@@ -18,6 +19,7 @@ function WalletPage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [sendOpen, setSendOpen] = useState(false);
   const [receiveOpen, setReceiveOpen] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
 
   const usd = eth != null ? eth * 1 : null; // 1 ARC ≈ $1 testnet placeholder
 
@@ -95,7 +97,7 @@ function WalletPage() {
             <div className="grid grid-cols-3 gap-2 mt-6">
               <ActionBtn onClick={() => setSendOpen(true)} icon={<ArrowUpRight />} label="Send" />
               <ActionBtn onClick={() => setReceiveOpen(true)} icon={<ArrowDownLeft />} label="Receive" />
-              <ActionBtn onClick={() => toast.info("Swap routing coming soon")} icon={<ArrowLeftRight />} label="Swap" />
+              <ActionBtn onClick={() => setSwapOpen(true)} icon={<ArrowLeftRight />} label="Swap" />
             </div>
             <div className="mt-6 space-y-2">
               <TokenRow symbol="USDC" name="USD Coin (native gas)" amount={eth ?? 0} usd={usd ?? 0} color="bg-blue-500" />
@@ -139,6 +141,7 @@ function WalletPage() {
 
       {sendOpen && <SendDialog onClose={() => { setSendOpen(false); refresh(); }} />}
       {receiveOpen && <ReceiveDialog address={address} onClose={() => setReceiveOpen(false)} />}
+      {swapOpen && <SwapDialog onClose={() => setSwapOpen(false)} />}
     </main>
   );
 }
@@ -247,6 +250,129 @@ function Field({ label, value, onChange, ...rest }: { label: string; value: stri
       <input value={value} onChange={(e) => onChange(e.target.value)}
         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary"
         {...(rest as React.InputHTMLAttributes<HTMLInputElement>)} />
+    </div>
+  );
+}
+
+function SwapDialog({ onClose }: { onClose: () => void }) {
+  const [tokenIn, setTokenIn] = useState<Token>(TOKENS[0]);
+  const [tokenOut, setTokenOut] = useState<Token>(TOKENS[1]);
+  const [amount, setAmount] = useState("1");
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  // Debounced live quote from Uniswap V3 QuoterV2 on Ethereum mainnet
+  useEffect(() => {
+    setQuote(null); setErr(null);
+    const a = Number(amount);
+    if (!a || a <= 0 || tokenIn.address === tokenOut.address) return;
+    const t = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const q = await getQuote(tokenIn, tokenOut, amount);
+        setQuote(q);
+      } catch (e) {
+        setErr((e as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [tokenIn, tokenOut, amount, getQuote]);
+
+  function flip() {
+    setTokenIn(tokenOut);
+    setTokenOut(tokenIn);
+  }
+
+  async function execute() {
+    try {
+      await switchToMainnet();
+      window.open(uniswapAppUrl(tokenIn, tokenOut, amount), "_blank", "noopener,noreferrer");
+      toast.success("Opening Uniswap to complete the swap");
+      onClose();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  return (
+    <Modal onClose={onClose} title="Swap · Uniswap V3">
+      <div className="space-y-3">
+        <TokenPicker label="From" token={tokenIn} onChange={setTokenIn} tokens={TOKENS} amount={amount} onAmount={setAmount} />
+        <div className="flex justify-center -my-1">
+          <button onClick={flip} className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-primary flex items-center justify-center">
+            <ArrowLeftRight className="w-4 h-4" />
+          </button>
+        </div>
+        <TokenPicker label="To" token={tokenOut} onChange={setTokenOut} tokens={TOKENS} amount={quote?.amountOut ?? ""} readOnly />
+
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 text-xs space-y-1 min-h-[76px]">
+          {loading && <p className="text-muted-foreground">Fetching live quote from Uniswap…</p>}
+          {err && <p className="text-destructive">{err}</p>}
+          {quote && !loading && (
+            <>
+              <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-mono">1 {tokenIn.symbol} = {quote.rate.toFixed(6)} {tokenOut.symbol}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Route</span><span>{quote.route}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Pool fee</span><span>{(quote.feeTier / 10000).toFixed(2)}%</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Source</span><span>Uniswap V3 · Ethereum</span></div>
+            </>
+          )}
+          {!loading && !err && !quote && <p className="text-muted-foreground">Enter an amount to see a live quote.</p>}
+        </div>
+
+        <button
+          onClick={execute}
+          disabled={!quote || loading}
+          className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50"
+        >
+          Swap on Uniswap
+        </button>
+        <p className="text-[10px] text-muted-foreground text-center">
+          Live quotes from Uniswap V3 on Ethereum mainnet. Execution opens Uniswap with your trade pre-filled and prompts your wallet to switch to mainnet. Arc testnet has no DEX yet.
+        </p>
+      </div>
+    </Modal>
+  );
+}
+
+function TokenPicker({
+  label, token, onChange, tokens, amount, onAmount, readOnly,
+}: {
+  label: string;
+  token: import("@/lib/uniswap").Token;
+  onChange: (t: import("@/lib/uniswap").Token) => void;
+  tokens: import("@/lib/uniswap").Token[];
+  amount: string;
+  onAmount?: (v: string) => void;
+  readOnly?: boolean;
+}) {
+  return (
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-display tracking-widest text-muted-foreground">{label.toUpperCase()}</span>
+        <select
+          value={token.symbol}
+          onChange={(e) => {
+            const t = tokens.find((x) => x.symbol === e.target.value);
+            if (t) onChange(t);
+          }}
+          className="bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-primary"
+        >
+          {tokens.map((t) => (
+            <option key={t.symbol} value={t.symbol}>{t.symbol} — {t.name}</option>
+          ))}
+        </select>
+      </div>
+      <input
+        type="number"
+        value={amount}
+        onChange={(e) => onAmount?.(e.target.value)}
+        readOnly={readOnly}
+        placeholder="0.0"
+        className="w-full bg-transparent text-2xl font-mono outline-none disabled:opacity-60 read-only:opacity-70"
+      />
     </div>
   );
 }
