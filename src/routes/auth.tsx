@@ -45,10 +45,17 @@ function AuthPage() {
         toast.success("Account created. Check your email to verify before signing in.");
         setCooldown(30);
         setMode("signin");
+      } else if (mode === "forgot") {
+        if (cooldown > 0) return;
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success("Password reset link sent — check your inbox.");
+        setCooldown(30);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          // Surface the most common cause clearly.
           const msg = (error.message || "").toLowerCase();
           if (msg.includes("email") && msg.includes("confirm")) {
             toast.error("Please confirm your email first — check your inbox for the verification link.");
