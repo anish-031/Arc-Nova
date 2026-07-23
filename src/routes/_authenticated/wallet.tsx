@@ -24,8 +24,36 @@ function WalletPage() {
   const [sendOpen, setSendOpen] = useState(false);
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
+  const [erc20, setErc20] = useState<{ USDC: number; EURC: number; cBTC: number }>({ USDC: 0, EURC: 0, cBTC: 0 });
 
-  const usd = eth != null ? eth * 1 : null; // 1 ARC ≈ $1 testnet placeholder
+  useEffect(() => {
+    if (!address) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        (Object.entries(ARC_TOKENS) as [keyof typeof ARC_TOKENS, typeof ARC_TOKENS[keyof typeof ARC_TOKENS]][]).map(async ([sym, t]) => {
+          if (!t.address) return [sym, 0] as const;
+          try {
+            const wei = await getErc20Balance(t.address, address);
+            return [sym, Number(wei) / 10 ** t.decimals] as const;
+          } catch {
+            return [sym, 0] as const;
+          }
+        })
+      );
+      if (cancelled) return;
+      const next = { USDC: 0, EURC: 0, cBTC: 0 };
+      for (const [sym, val] of entries) next[sym] = val;
+      setErc20(next);
+    })();
+    return () => { cancelled = true; };
+  }, [address, loading]);
+
+  // Native gas token on Arc is USDC (18 decimals) — treat it as the spendable USDC balance.
+  const usdcBal = eth ?? 0;
+  const eurcBal = erc20.EURC;
+  const btcBal = erc20.cBTC;
+  const usd = usdcBal + eurcBal; // testnet placeholder: 1 USDC ≈ 1 EURC ≈ $1
 
   function copy() {
     if (!address) return;
