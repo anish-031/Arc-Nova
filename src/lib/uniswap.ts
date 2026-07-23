@@ -146,6 +146,7 @@ export async function getQuote(
   const { createSwapKitContext, estimate, SwapChain } = await loadKit();
   const adapter = await buildAdapter();
   const ctx = createSwapKitContext();
+  const kitKey = await getKitKey();
 
   const est = await estimate(ctx, {
     from: { adapter, chain: SwapChain.Arc_Testnet },
@@ -155,7 +156,7 @@ export async function getQuote(
     config: {
       slippageBps: 300,
       allowanceStrategy: "permit",
-      ...(KIT_KEY ? { kitKey: KIT_KEY } : {}),
+      kitKey,
     },
   });
 
