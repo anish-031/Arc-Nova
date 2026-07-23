@@ -25,7 +25,7 @@ function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
-  const { address, connecting, connect } = useWallet();
+  const { address } = useWallet();
 
   async function load(walletAddr?: string | null) {
     setLoading(true);
@@ -49,11 +49,6 @@ function DashboardPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [user.id]);
 
-  async function linkWallet() {
-    const addr = await connect();
-    if (addr) await load(addr);
-  }
-
   if (loading || !profile) {
     return <div className="max-w-7xl mx-auto px-6 py-12 font-display text-muted-foreground">// LOADING TERMINAL...</div>;
   }
@@ -68,18 +63,6 @@ function DashboardPage() {
           <p className="font-display text-xs tracking-widest text-muted-foreground">// OPERATOR</p>
           <h1 className="text-3xl font-bold mt-1">{profile.username ?? user.email}</h1>
           <p className="text-sm text-muted-foreground">{user.email}</p>
-        </div>
-        <div className="flex gap-2">
-          {profile.address ? (
-            <span className="px-3 py-2 text-xs font-display rounded border border-primary/40 text-neon glow-border">
-              {profile.address.slice(0, 6)}…{profile.address.slice(-4)}
-            </span>
-          ) : (
-            <button onClick={linkWallet} disabled={connecting}
-              className="px-4 py-2 rounded bg-primary text-primary-foreground font-medium glow-border disabled:opacity-50">
-              {connecting ? "Connecting…" : "Connect Wallet · Arc"}
-            </button>
-          )}
         </div>
       </div>
 
