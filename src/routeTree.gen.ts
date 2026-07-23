@@ -17,6 +17,7 @@ import { Route as AuthenticatedXPremiumRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTopupRouteImport } from './routes/_authenticated/topup'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRewardsRouteImport } from './routes/_authenticated/rewards'
 import { Route as AuthenticatedQuestsRouteImport } from './routes/_authenticated/quests'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
@@ -63,6 +64,11 @@ const AuthenticatedTopupRoute = AuthenticatedTopupRouteImport.update({
 const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
   id: '/tools',
   path: '/tools',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRewardsRoute = AuthenticatedRewardsRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/orders': typeof AuthenticatedOrdersRoute
   '/quests': typeof AuthenticatedQuestsRoute
   '/rewards': typeof AuthenticatedRewardsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/orders': typeof AuthenticatedOrdersRoute
   '/quests': typeof AuthenticatedQuestsRoute
   '/rewards': typeof AuthenticatedRewardsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/quests': typeof AuthenticatedQuestsRoute
   '/_authenticated/rewards': typeof AuthenticatedRewardsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
   '/_authenticated/topup': typeof AuthenticatedTopupRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/quests'
     | '/rewards'
+    | '/settings'
     | '/tools'
     | '/topup'
     | '/wallet'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/quests'
     | '/rewards'
+    | '/settings'
     | '/tools'
     | '/topup'
     | '/wallet'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orders'
     | '/_authenticated/quests'
     | '/_authenticated/rewards'
+    | '/_authenticated/settings'
     | '/_authenticated/tools'
     | '/_authenticated/topup'
     | '/_authenticated/wallet'
@@ -281,6 +293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedToolsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/rewards': {
       id: '/_authenticated/rewards'
       path: '/rewards'
@@ -349,6 +368,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedQuestsRoute: typeof AuthenticatedQuestsRoute
   AuthenticatedRewardsRoute: typeof AuthenticatedRewardsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
   AuthenticatedTopupRoute: typeof AuthenticatedTopupRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
@@ -364,6 +384,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedQuestsRoute: AuthenticatedQuestsRoute,
   AuthenticatedRewardsRoute: AuthenticatedRewardsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
   AuthenticatedTopupRoute: AuthenticatedTopupRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
