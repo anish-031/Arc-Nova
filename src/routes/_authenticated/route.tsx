@@ -46,10 +46,6 @@ function AuthedLayout() {
       .then(({ data }) => setIsAdmin(!!data || user.email === "anishkumargupta031@gmail.com"));
   }, [user.id, user.email]);
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  }
 
   async function copyAddress() {
     if (!address) return;
