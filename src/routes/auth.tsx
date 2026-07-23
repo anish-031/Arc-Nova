@@ -98,13 +98,19 @@ function AuthPage() {
             className="text-muted-foreground hover:text-neon transition-colors">
             {mode === "signin" ? "No account? Create one →" : "Have an account? Sign in →"}
           </button>
-          {mode === "signin" && (
+          {mode === "signup" && (
             <button onClick={resendConfirmation} type="button"
               className="text-muted-foreground hover:text-neon transition-colors">
               Resend confirmation
             </button>
           )}
         </div>
+
+        {mode === "signup" && (
+          <p className="mt-4 text-xs text-muted-foreground border border-zinc-800 rounded p-3 bg-zinc-900/50">
+            After creating your account, we'll send a confirmation link to your email. Click it to activate your identity before signing in.
+          </p>
+        )}
       </div>
     </div>
   );
