@@ -115,9 +115,32 @@ function AuthedLayout() {
             <span className="w-1.5 h-1.5 rounded-full bg-success" /> Arc Testnet
           </span>
           {address ? (
-            <span className="px-3 py-1.5 rounded-lg border border-primary/40 text-xs font-display text-neon glow-border">
-              {address.slice(0, 6)}…{address.slice(-4)}
-            </span>
+            <div className="relative">
+              <button
+                onClick={() => setWalletOpen((o) => !o)}
+                className="px-3 py-1.5 rounded-lg border border-primary/40 text-xs font-display text-neon glow-border flex items-center gap-2"
+              >
+                {address.slice(0, 6)}…{address.slice(-4)}
+                <span className="w-1 h-1 rounded-full bg-success" />
+              </button>
+              {walletOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-zinc-800 bg-zinc-950 shadow-xl overflow-hidden z-50">
+                  <button
+                    onClick={() => { copyAddress(); setWalletOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-zinc-900 transition-colors"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                    {copied ? "Copied" : "Copy address"}
+                  </button>
+                  <button
+                    onClick={() => { disconnect(); setWalletOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-muted-foreground hover:text-destructive hover:bg-zinc-900 transition-colors border-t border-zinc-800"
+                  >
+                    <LogOut className="w-4 h-4" /> Disconnect
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <button onClick={connect} disabled={connecting}
               className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-sm font-medium disabled:opacity-50">
