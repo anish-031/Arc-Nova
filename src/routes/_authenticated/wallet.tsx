@@ -255,8 +255,7 @@ function Field({ label, value, onChange, ...rest }: { label: string; value: stri
 }
 
 function SwapDialog({ onClose }: { onClose: () => void }) {
-  const { TOKENS, getQuote, uniswapAppUrl, switchToMainnet } = require("@/lib/uniswap") as typeof import("@/lib/uniswap");
-  const [tokenIn, setTokenIn] = useState(TOKENS[0]);
+  const [tokenIn, setTokenIn] = useState<Token>(TOKENS[0]);
   const [tokenOut, setTokenOut] = useState(TOKENS[1]);
   const [amount, setAmount] = useState("1");
   const [quote, setQuote] = useState<Awaited<ReturnType<typeof getQuote>> | null>(null);
