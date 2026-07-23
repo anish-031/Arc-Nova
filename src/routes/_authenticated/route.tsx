@@ -5,7 +5,7 @@ import { useWallet } from "@/hooks/use-wallet";
 import {
   LayoutDashboard, Wallet as WalletIcon, Target, Gift, Store, Gamepad2,
   Twitter, Wrench, Rocket, Trophy, Bell, ChevronLeft, Settings, ShoppingBag,
-  LogOut, ShieldCheck,
+  LogOut, ShieldCheck, Copy, Check,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
