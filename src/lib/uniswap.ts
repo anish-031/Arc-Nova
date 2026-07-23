@@ -124,9 +124,15 @@ async function buildAdapter() {
   return adapter;
 }
 
-const KIT_KEY = (typeof import.meta !== "undefined"
-  ? (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_CIRCLE_KIT_KEY
-  : undefined);
+import { getCircleKitKey } from "./circle-kit.functions";
+
+let KIT_KEY_CACHE: string | null = null;
+async function getKitKey(): Promise<string> {
+  if (KIT_KEY_CACHE) return KIT_KEY_CACHE;
+  const { kitKey } = await getCircleKitKey();
+  KIT_KEY_CACHE = kitKey;
+  return kitKey;
+}
 
 export async function getQuote(
   tokenIn: Token,
