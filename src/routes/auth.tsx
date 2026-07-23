@@ -14,6 +14,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -24,6 +25,12 @@ function AuthPage() {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,6 +43,7 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Account created. Check your email to verify before signing in.");
+        setCooldown(30);
         setMode("signin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -62,12 +70,16 @@ function AuthPage() {
 
   async function resendConfirmation() {
     if (!email) { toast.error("Enter your email first"); return; }
+    if (cooldown > 0) return;
     const { error } = await supabase.auth.resend({
       type: "signup", email,
       options: { emailRedirectTo: `${window.location.origin}/dashboard` },
     });
     if (error) toast.error(error.message);
-    else toast.success("Confirmation email resent — check your inbox.");
+    else {
+      toast.success("Confirmation email resent — check your inbox.");
+      setCooldown(30);
+    }
   }
 
   return (
@@ -100,8 +112,9 @@ function AuthPage() {
           </button>
           {mode === "signup" && (
             <button onClick={resendConfirmation} type="button"
-              className="text-muted-foreground hover:text-neon transition-colors">
-              Resend confirmation
+              disabled={cooldown > 0}
+              className="text-muted-foreground hover:text-neon transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend confirmation"}
             </button>
           )}
         </div>
