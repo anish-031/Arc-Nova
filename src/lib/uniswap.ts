@@ -124,9 +124,15 @@ async function buildAdapter() {
   return adapter;
 }
 
-const KIT_KEY = (typeof import.meta !== "undefined"
-  ? (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_CIRCLE_KIT_KEY
-  : undefined);
+import { getCircleKitKey } from "./circle-kit.functions";
+
+let KIT_KEY_CACHE: string | null = null;
+async function getKitKey(): Promise<string> {
+  if (KIT_KEY_CACHE) return KIT_KEY_CACHE;
+  const { kitKey } = await getCircleKitKey();
+  KIT_KEY_CACHE = kitKey;
+  return kitKey;
+}
 
 export async function getQuote(
   tokenIn: Token,
@@ -140,6 +146,7 @@ export async function getQuote(
   const { createSwapKitContext, estimate, SwapChain } = await loadKit();
   const adapter = await buildAdapter();
   const ctx = createSwapKitContext();
+  const kitKey = await getKitKey();
 
   const est = await estimate(ctx, {
     from: { adapter, chain: SwapChain.Arc_Testnet },
@@ -149,7 +156,7 @@ export async function getQuote(
     config: {
       slippageBps: 300,
       allowanceStrategy: "permit",
-      ...(KIT_KEY ? { kitKey: KIT_KEY } : {}),
+      kitKey,
     },
   });
 
@@ -217,6 +224,7 @@ export async function executeSwap(
   const { createSwapKitContext, swap, SwapChain } = await loadKit();
   const adapter = await buildAdapter();
   const ctx = createSwapKitContext();
+  const kitKey = await getKitKey();
 
   const result = await swap(ctx, {
     from: { adapter, chain: SwapChain.Arc_Testnet },
@@ -226,7 +234,7 @@ export async function executeSwap(
     config: {
       slippageBps: 300,
       allowanceStrategy: "permit",
-      ...(KIT_KEY ? { kitKey: KIT_KEY } : {}),
+      kitKey,
     },
   });
 
