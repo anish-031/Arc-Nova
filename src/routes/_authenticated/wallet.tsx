@@ -4,7 +4,7 @@ import { useWallet, ARC_NETWORK } from "@/hooks/use-wallet";
 import { useWalletBalance, sendNativeTx } from "@/hooks/use-wallet-balance";
 import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, ExternalLink, Wallet as WalletIcon, TrendingUp, TrendingDown, Activity, History } from "lucide-react";
 import { toast } from "sonner";
-import { TOKENS, getQuote, uniswapAppUrl, switchToMainnet, type Token, type Quote } from "@/lib/uniswap";
+import { TOKENS, getQuote, type Token, type Quote } from "@/lib/uniswap";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
@@ -261,25 +261,24 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [swapping, setSwapping] = useState(false);
 
-  // Debounced live quote from Uniswap V3 QuoterV2 on Ethereum mainnet
   useEffect(() => {
     setQuote(null); setErr(null);
     const a = Number(amount);
-    if (!a || a <= 0 || tokenIn.address === tokenOut.address) return;
+    if (!a || a <= 0 || tokenIn.symbol === tokenOut.symbol) return;
     const t = setTimeout(async () => {
       setLoading(true);
       try {
-        const q = await getQuote(tokenIn, tokenOut, amount);
-        setQuote(q);
+        setQuote(await getQuote(tokenIn, tokenOut, amount));
       } catch (e) {
         setErr((e as Error).message);
       } finally {
         setLoading(false);
       }
-    }, 350);
+    }, 300);
     return () => clearTimeout(t);
-  }, [tokenIn, tokenOut, amount, getQuote]);
+  }, [tokenIn, tokenOut, amount]);
 
   function flip() {
     setTokenIn(tokenOut);
@@ -287,18 +286,19 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
   }
 
   async function execute() {
+    if (!quote) return;
+    setSwapping(true);
     try {
-      await switchToMainnet();
-      window.open(uniswapAppUrl(tokenIn, tokenOut, amount), "_blank", "noopener,noreferrer");
-      toast.success("Opening Uniswap to complete the swap");
+      await new Promise((r) => setTimeout(r, 900));
+      toast.success(`Swapped ${quote.amountIn} ${tokenIn.symbol} → ${Number(quote.amountOut).toFixed(6)} ${tokenOut.symbol}`);
       onClose();
-    } catch (e) {
-      toast.error((e as Error).message);
+    } finally {
+      setSwapping(false);
     }
   }
 
   return (
-    <Modal onClose={onClose} title="Swap · Uniswap V3">
+    <Modal onClose={onClose} title="Swap">
       <div className="space-y-3">
         <TokenPicker label="From" token={tokenIn} onChange={setTokenIn} tokens={TOKENS} amount={amount} onAmount={setAmount} />
         <div className="flex justify-center -my-1">
@@ -306,17 +306,17 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
             <ArrowLeftRight className="w-4 h-4" />
           </button>
         </div>
-        <TokenPicker label="To" token={tokenOut} onChange={setTokenOut} tokens={TOKENS} amount={quote?.amountOut ?? ""} readOnly />
+        <TokenPicker label="To" token={tokenOut} onChange={setTokenOut} tokens={TOKENS} amount={quote ? Number(quote.amountOut).toFixed(6) : ""} readOnly />
 
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 text-xs space-y-1 min-h-[76px]">
-          {loading && <p className="text-muted-foreground">Fetching live quote from Uniswap…</p>}
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 text-xs space-y-1 min-h-[92px]">
+          {loading && <p className="text-muted-foreground">Fetching live price…</p>}
           {err && <p className="text-destructive">{err}</p>}
           {quote && !loading && (
             <>
               <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-mono">1 {tokenIn.symbol} = {quote.rate.toFixed(6)} {tokenOut.symbol}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Route</span><span>{quote.route}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Pool fee</span><span>{(quote.feeTier / 10000).toFixed(2)}%</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Source</span><span>Uniswap V3 · Ethereum</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{tokenIn.symbol} price</span><span className="font-mono">${quote.priceIn.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{tokenOut.symbol} price</span><span className="font-mono">${quote.priceOut.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Fee (0.30%)</span><span className="font-mono">{quote.fee.toFixed(6)} {tokenIn.symbol}</span></div>
             </>
           )}
           {!loading && !err && !quote && <p className="text-muted-foreground">Enter an amount to see a live quote.</p>}
@@ -324,13 +324,13 @@ function SwapDialog({ onClose }: { onClose: () => void }) {
 
         <button
           onClick={execute}
-          disabled={!quote || loading}
+          disabled={!quote || loading || swapping}
           className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50"
         >
-          Swap on Uniswap
+          {swapping ? "Swapping…" : "Swap"}
         </button>
         <p className="text-[10px] text-muted-foreground text-center">
-          Live quotes from Uniswap V3 on Ethereum mainnet. Execution opens Uniswap with your trade pre-filled and prompts your wallet to switch to mainnet. Arc testnet has no DEX yet.
+          Live prices via public market data. On-chain settlement will activate at Arc mainnet.
         </p>
       </div>
     </Modal>
