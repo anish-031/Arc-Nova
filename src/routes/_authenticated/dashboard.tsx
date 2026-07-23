@@ -4,10 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { healProfile, type Profile } from "@/lib/profile";
 import { useWallet } from "@/hooks/use-wallet";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { listSwapAttempts, updateSwapAttempt } from "@/lib/swaps.functions";
-import { waitForReceipt } from "@/lib/uniswap";
-import { ExternalLink, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — ARC NOVA" }] }),
