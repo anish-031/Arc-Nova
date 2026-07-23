@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { TOKENS, getQuote, executeSwap, getGasPriceGwei, waitForReceipt, type Token, type Quote, type SwapStep } from "@/lib/uniswap";
 import { useServerFn } from "@tanstack/react-start";
 import { createSwapAttempt, updateSwapAttempt, listSwapAttempts } from "@/lib/swaps.functions";
+import { scanTxList, fmtUnits, type ScanTx } from "@/lib/arc-rpc";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — ARC NOVA" }] }),
