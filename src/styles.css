@@ -89,30 +89,61 @@
 }
 
 .light {
-  --background: oklch(0.985 0.003 270);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.2 0.02 270);
-  --card: oklch(0.98 0.005 270);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.02 270);
-  --popover: oklch(0.98 0.005 270);
+  --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.02 270);
   --primary: oklch(0.55 0.16 220);
-  --primary-foreground: oklch(0.985 0.003 270);
-  --secondary: oklch(0.94 0.01 270);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.97 0.005 270);
   --secondary-foreground: oklch(0.2 0.02 270);
-  --muted: oklch(0.94 0.01 270);
+  --muted: oklch(0.97 0.005 270);
   --muted-foreground: oklch(0.45 0.02 270);
   --accent: oklch(0.6 0.2 330);
-  --accent-foreground: oklch(0.985 0.003 270);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.55 0.24 25);
-  --destructive-foreground: oklch(0.985 0.003 270);
+  --destructive-foreground: oklch(1 0 0);
   --success: oklch(0.6 0.18 145);
   --warning: oklch(0.7 0.18 75);
-  --border: oklch(0.88 0.01 270);
-  --input: oklch(0.88 0.01 270);
+  --border: oklch(0.92 0.005 270);
+  --input: oklch(0.92 0.005 270);
   --ring: oklch(0.55 0.16 220);
   --neon: oklch(0.55 0.16 220);
-  --neon-foreground: oklch(0.985 0.003 270);
+  --neon-foreground: oklch(1 0 0);
 }
+
+/* In light mode, neutralize the hard-coded dark zinc utilities scattered
+   across the app so backgrounds turn white while text/borders stay readable.
+   Only backgrounds are overridden — text colors are left untouched. */
+.light body {
+  background-image: none !important;
+}
+.light .panel {
+  background: #ffffff !important;
+}
+.light .bg-background,
+.light .bg-zinc-950,
+.light .bg-zinc-950\/80,
+.light .bg-zinc-950\/70,
+.light .bg-zinc-900,
+.light .bg-zinc-900\/60,
+.light .bg-zinc-900\/40,
+.light .bg-zinc-900\/70,
+.light .bg-black {
+  background-color: #ffffff !important;
+}
+.light .border-zinc-800,
+.light .border-zinc-700 {
+  border-color: oklch(0.92 0.005 270) !important;
+}
+.light .hover\:bg-zinc-900:hover,
+.light .hover\:bg-zinc-900\/40:hover,
+.light .hover\:bg-zinc-800:hover {
+  background-color: oklch(0.97 0.005 270) !important;
+}
+
 
 @layer base {
   * { border-color: var(--color-border); }
