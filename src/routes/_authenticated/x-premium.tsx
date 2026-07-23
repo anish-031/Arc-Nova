@@ -50,13 +50,19 @@ function XPremiumPage() {
 }
 
 function PlanCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
+  const outOfStock = plan.tier === "Premium+";
   return (
-    <div className={`relative panel border rounded-xl p-6 transition-all hover:scale-[1.02] ${
-      plan.popular ? "border-primary glow-border" : "border-zinc-800"
-    }`}>
-      {plan.popular && (
+    <div className={`relative panel border rounded-xl p-6 transition-all ${
+      outOfStock ? "opacity-70 border-zinc-800" : "hover:scale-[1.02]"
+    } ${plan.popular && !outOfStock ? "border-primary glow-border" : "border-zinc-800"}`}>
+      {plan.popular && !outOfStock && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-primary to-accent text-white text-xs font-semibold flex items-center gap-1">
           <Sparkles className="w-3 h-3" /> Most Popular
+        </div>
+      )}
+      {outOfStock && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-destructive/90 text-white text-xs font-semibold">
+          Out of Stock
         </div>
       )}
       <h3 className="text-xl font-bold">{plan.tier} ({plan.duration})</h3>
@@ -71,9 +77,9 @@ function PlanCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
           </li>
         ))}
       </ul>
-      <button onClick={onSelect}
-        className="mt-6 w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium hover:opacity-90">
-        Subscribe
+      <button onClick={onSelect} disabled={outOfStock}
+        className="mt-6 w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed">
+        {outOfStock ? "Out of Stock" : "Subscribe"}
       </button>
     </div>
   );
