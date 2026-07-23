@@ -95,7 +95,7 @@ function WalletPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat icon={<WalletIcon className="text-primary" />} label="Total Balance" value={usd != null ? `$${usd.toFixed(2)}` : "—"} />
+        <Stat icon={<WalletIcon className="text-primary" />} label="Total Balance" value={`$${usd.toFixed(2)}`} />
         <Stat icon={<TrendingUp className="text-success" />} label="Received" value="0" />
         <Stat icon={<TrendingDown className="text-destructive" />} label="Sent" value="0" />
         <Stat icon={<Activity className="text-accent" />} label="Total Tx" value={txCount?.toString() ?? "—"} />
