@@ -42,7 +42,11 @@ function MarketplacePage() {
   const popular = filtered.filter((c) => c.popular);
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-10">
+    <main className="relative max-w-7xl mx-auto px-6 py-10">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 backdrop-blur-xl rounded-lg pointer-events-auto">
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-neon tracking-tight">Coming Soon After Mainnet</h2>
+        <p className="mt-2 text-sm text-muted-foreground text-center">The gift card marketplace will be unlocked once the Arc network is live.</p>
+      </div>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold">Gift Card Marketplace</h1>
