@@ -133,6 +133,63 @@ export type Database = {
         }
         Relationships: []
       }
+      swap_attempts: {
+        Row: {
+          amount_in: number
+          amount_out: number | null
+          created_at: string
+          error: string | null
+          explorer_url: string | null
+          gas_gwei: number | null
+          id: string
+          min_received: number | null
+          rate: number | null
+          status: string
+          token_in: string
+          token_out: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+          wallet_address: string | null
+        }
+        Insert: {
+          amount_in: number
+          amount_out?: number | null
+          created_at?: string
+          error?: string | null
+          explorer_url?: string | null
+          gas_gwei?: number | null
+          id?: string
+          min_received?: number | null
+          rate?: number | null
+          status?: string
+          token_in: string
+          token_out: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_address?: string | null
+        }
+        Update: {
+          amount_in?: number
+          amount_out?: number | null
+          created_at?: string
+          error?: string | null
+          explorer_url?: string | null
+          gas_gwei?: number | null
+          id?: string
+          min_received?: number | null
+          rate?: number | null
+          status?: string
+          token_in?: string
+          token_out?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
