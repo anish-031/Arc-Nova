@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect, Link } from "@tanstack/react-router"
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useWallet } from "@/hooks/use-wallet";
+import { toast } from "sonner";
 import {
   LayoutDashboard, Wallet as WalletIcon, Target, Gift, Store, Gamepad2,
   Twitter, Wrench, Rocket, Trophy, Bell, ChevronLeft, Settings, ShoppingBag,
