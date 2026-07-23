@@ -36,7 +36,9 @@ function AuthedLayout() {
   const { user } = Route.useRouteContext();
   const [isAdmin, setIsAdmin] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const { address, connect, connecting } = useWallet();
+  const [walletOpen, setWalletOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { address, connect, connecting, disconnect } = useWallet();
 
   useEffect(() => {
     supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
@@ -46,6 +48,17 @@ function AuthedLayout() {
   async function signOut() {
     await supabase.auth.signOut();
     window.location.href = "/";
+  }
+
+  async function copyAddress() {
+    if (!address) return;
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast?.error?.("Copy failed");
+    }
   }
 
   return (
