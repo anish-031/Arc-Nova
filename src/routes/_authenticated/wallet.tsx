@@ -134,7 +134,7 @@ function WalletPage() {
         </section>
       )}
 
-      {tab === "history" && <SwapHistory />}
+      {tab === "history" && <><OnchainHistory address={address} /><SwapHistory /></>}
 
       {sendOpen && <SendDialog onClose={() => { setSendOpen(false); refresh(); }} />}
       {receiveOpen && <ReceiveDialog address={address} onClose={() => setReceiveOpen(false)} />}
