@@ -143,7 +143,7 @@ function WalletPage() {
 
       {sendOpen && <SendDialog onClose={() => { setSendOpen(false); refresh(); }} />}
       {receiveOpen && <ReceiveDialog address={address} onClose={() => setReceiveOpen(false)} />}
-      {swapOpen && <SwapDialog onClose={() => setSwapOpen(false)} />}
+      {swapOpen && <SwapDialog walletAddress={address} onClose={() => setSwapOpen(false)} />}
     </main>
   );
 }
