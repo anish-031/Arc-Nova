@@ -140,7 +140,7 @@ export async function getQuote(
   const { createSwapKitContext, estimate, SwapChain } = await loadKit();
   const adapter = await buildAdapter();
   const ctx = createSwapKitContext();
-  const kitKey = await getKitKey();
+  const kitKey = KIT_KEY;
 
   const est = await estimate(ctx, {
     from: { adapter, chain: SwapChain.Arc_Testnet },
@@ -218,7 +218,7 @@ export async function executeSwap(
   const { createSwapKitContext, swap, SwapChain } = await loadKit();
   const adapter = await buildAdapter();
   const ctx = createSwapKitContext();
-  const kitKey = await getKitKey();
+  const kitKey = KIT_KEY;
 
   const result = await swap(ctx, {
     from: { adapter, chain: SwapChain.Arc_Testnet },
