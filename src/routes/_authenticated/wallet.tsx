@@ -600,3 +600,82 @@ function SwapStatusPill({ status }: { status: string }) {
   };
   return <span className={`px-2 py-0.5 rounded border text-xs font-display uppercase ${map[status] ?? "border-zinc-700 text-muted-foreground"}`}>{status}</span>;
 }
+
+function OnchainHistory({ address }: { address: string }) {
+  const [txs, setTxs] = useState<ScanTx[]>([]);
+  const [loading, setLoading] = useState(true);
+  const me = address.toLowerCase();
+
+  async function load() {
+    setLoading(true);
+    try {
+      const rows = await scanTxList(address, 25).catch(() => [] as ScanTx[]);
+      setTxs(rows);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [address]);
+
+  return (
+    <section className="panel border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
+        <h3 className="font-display tracking-widest text-sm text-muted-foreground">ONCHAIN TRANSACTIONS</h3>
+        <button onClick={load} disabled={loading} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 disabled:opacity-50">
+          <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} /> Refresh
+        </button>
+      </div>
+      <table className="w-full text-sm">
+        <thead className="bg-zinc-900/60 text-xs font-display tracking-widest text-muted-foreground">
+          <tr>
+            <th className="text-left px-4 py-2">TYPE</th>
+            <th className="text-left px-4 py-2">COUNTERPARTY</th>
+            <th className="text-left px-4 py-2">VALUE</th>
+            <th className="text-left px-4 py-2">TX</th>
+            <th className="text-left px-4 py-2">DATE</th>
+            <th className="text-left px-4 py-2">STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {txs.length === 0 && (
+            <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+              {loading ? "Loading transactions…" : "No transactions yet on this address."}
+            </td></tr>
+          )}
+          {txs.map((t) => {
+            const fromMe = t.from?.toLowerCase() === me;
+            const toMe = t.to?.toLowerCase() === me;
+            const isContract = t.input && t.input !== "0x" && t.input.length > 2;
+            const kind = fromMe && toMe ? "SELF" : isContract && fromMe ? "CONTRACT" : fromMe ? "SEND" : toMe ? "RECEIVE" : "TX";
+            const counter = fromMe ? t.to : t.from;
+            const failed = t.isError === "1" || t.txreceipt_status === "0";
+            return (
+              <tr key={t.hash} className="border-t border-zinc-800 hover:bg-zinc-900/40">
+                <td className="px-4 py-3">
+                  <span className={`inline-flex items-center gap-1 font-display text-xs ${kind === "SEND" ? "text-destructive" : kind === "RECEIVE" ? "text-success" : "text-muted-foreground"}`}>
+                    {kind === "SEND" ? <ArrowUpRight className="w-3 h-3" /> : kind === "RECEIVE" ? <ArrowDownLeft className="w-3 h-3" /> : <ArrowLeftRight className="w-3 h-3" />}
+                    {kind}
+                  </span>
+                </td>
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{counter ? `${counter.slice(0, 8)}…${counter.slice(-4)}` : "—"}</td>
+                <td className="px-4 py-3 font-mono">{fmtUnits(BigInt(t.value || "0"), 18, 6)}</td>
+                <td className="px-4 py-3 font-display text-xs">
+                  <a href={`${ARC_NETWORK.blockExplorerUrls[0]}/tx/${t.hash}`} target="_blank" rel="noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                    {t.hash.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
+                  </a>
+                </td>
+                <td className="px-4 py-3 text-muted-foreground">{new Date(Number(t.timeStamp) * 1000).toLocaleString()}</td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-0.5 rounded border text-xs font-display uppercase ${failed ? "border-destructive/40 text-destructive" : "border-success/40 text-success"}`}>
+                    {failed ? "failed" : "success"}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
+  );
+}
