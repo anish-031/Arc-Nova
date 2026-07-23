@@ -25,7 +25,7 @@ function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
-  const { address, connecting, connect } = useWallet();
+  const { address } = useWallet();
 
   async function load(walletAddr?: string | null) {
     setLoading(true);
@@ -48,11 +48,6 @@ function DashboardPage() {
   }
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [user.id]);
-
-  async function linkWallet() {
-    const addr = await connect();
-    if (addr) await load(addr);
-  }
 
   if (loading || !profile) {
     return <div className="max-w-7xl mx-auto px-6 py-12 font-display text-muted-foreground">// LOADING TERMINAL...</div>;
