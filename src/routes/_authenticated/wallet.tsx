@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useWallet, ARC_NETWORK } from "@/hooks/use-wallet";
 import { useWalletBalance, sendNativeTx } from "@/hooks/use-wallet-balance";
 import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, ExternalLink, Wallet as WalletIcon, TrendingUp, TrendingDown, Activity, History } from "lucide-react";
+import { WalletPicker } from "@/components/WalletPicker";
+import type { DiscoveredWallet } from "@/lib/wallet-providers";
+
 import { toast } from "sonner";
 import { TOKENS, getQuote, executeSwap, getGasPriceGwei, waitForReceipt, type Token, type Quote, type SwapStep } from "@/lib/uniswap";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,7 +27,9 @@ function WalletPage() {
   const [sendOpen, setSendOpen] = useState(false);
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [erc20, setErc20] = useState<{ USDC: number; EURC: number; cBTC: number }>({ USDC: 0, EURC: 0, cBTC: 0 });
+
 
   useEffect(() => {
     if (!address) return;
@@ -63,17 +68,21 @@ function WalletPage() {
 
   if (!address) {
     return (
-      <main className="max-w-7xl mx-auto px-6 py-16 text-center">
-        <WalletIcon className="w-12 h-12 text-muted-foreground mx-auto" />
-        <h1 className="text-2xl font-bold mt-4">Connect your wallet</h1>
-        <p className="text-muted-foreground mt-1">Link a wallet on Arc Network to view balances and transact.</p>
-        <button onClick={connect} disabled={connecting}
-          className="mt-6 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50">
-          {connecting ? "Connecting…" : "Connect Wallet"}
-        </button>
-      </main>
+      <>
+        <main className="max-w-7xl mx-auto px-6 py-16 text-center">
+          <WalletIcon className="w-12 h-12 text-muted-foreground mx-auto" />
+          <h1 className="text-2xl font-bold mt-4">Connect your wallet</h1>
+          <p className="text-muted-foreground mt-1">Link a wallet on Arc Network to view balances and transact.</p>
+          <button onClick={() => setPickerOpen(true)} disabled={connecting}
+            className="mt-6 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium disabled:opacity-50">
+            {connecting ? "Connecting…" : "Connect Wallet"}
+          </button>
+        </main>
+        <WalletPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onPick={(w) => connect(w)} />
+      </>
     );
   }
+
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-10 space-y-6">

@@ -2,12 +2,14 @@ import { createFileRoute, Outlet, redirect, Link } from "@tanstack/react-router"
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useWallet } from "@/hooks/use-wallet";
+import { WalletPicker } from "@/components/WalletPicker";
 import { toast } from "sonner";
 import {
   LayoutDashboard, Wallet as WalletIcon, Target, Gift, Store, Gamepad2,
   Twitter, Wrench, Rocket, Trophy, Bell, ChevronLeft, Settings, ShoppingBag,
   LogOut, ShieldCheck, Copy, Check,
 } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -38,8 +40,10 @@ function AuthedLayout() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const { address, connect, connecting, disconnect } = useWallet();
+
 
   useEffect(() => {
     supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
@@ -136,14 +140,17 @@ function AuthedLayout() {
               )}
             </div>
           ) : (
-            <button onClick={connect} disabled={connecting}
+            <button onClick={() => setPickerOpen(true)} disabled={connecting}
               className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-sm font-medium disabled:opacity-50">
               {connecting ? "Connecting…" : "Connect Wallet"}
             </button>
           )}
+
         </header>
         <Outlet />
       </div>
+      <WalletPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onPick={(w) => connect(w)} />
+
     </div>
   );
 }
