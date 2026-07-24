@@ -17,7 +17,10 @@ function Landing() {
     <div className="min-h-screen relative scanline">
       <header className="border-b border-zinc-800 bg-zinc-950/60 backdrop-blur sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link to="/" className="font-display tracking-widest text-neon text-lg">ARC&nbsp;NOVA</Link>
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/logo.png" alt="ARC NOVA" className="h-8 w-auto" />
+            <span className="font-display tracking-widest text-neon text-lg">ARC&nbsp;NOVA</span>
+          </Link>
           <nav className="flex items-center gap-3 text-sm">
             <Link to="/auth" className="px-3 py-1.5 rounded border border-zinc-800 hover:border-primary hover:text-neon transition-all">Sign in</Link>
           </nav>
