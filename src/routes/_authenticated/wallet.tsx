@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useWallet, ARC_NETWORK } from "@/hooks/use-wallet";
 import { useWalletBalance, sendNativeTx } from "@/hooks/use-wallet-balance";
 import { RefreshCw, Copy, QrCode, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, ExternalLink, Wallet as WalletIcon, TrendingUp, TrendingDown, Activity, History } from "lucide-react";
+import { WalletPicker } from "@/components/WalletPicker";
+import type { DiscoveredWallet } from "@/lib/wallet-providers";
+
 import { toast } from "sonner";
 import { TOKENS, getQuote, executeSwap, getGasPriceGwei, waitForReceipt, type Token, type Quote, type SwapStep } from "@/lib/uniswap";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,7 +27,9 @@ function WalletPage() {
   const [sendOpen, setSendOpen] = useState(false);
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [erc20, setErc20] = useState<{ USDC: number; EURC: number; cBTC: number }>({ USDC: 0, EURC: 0, cBTC: 0 });
+
 
   useEffect(() => {
     if (!address) return;
