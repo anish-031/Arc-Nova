@@ -9,6 +9,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ARC_TESTNET, isStaleArcNetworkError, STALE_ARC_CHAIN_ID_HEX, STALE_ARC_NETWORK_MESSAGE } from "@/lib/arc";
+import {
+  type DiscoveredWallet,
+  type Eip1193Provider,
+  getSelectedProvider,
+  setSelected,
+  clearSelected,
+} from "@/lib/wallet-providers";
 
 export const ARC_NETWORK = {
   chainId: ARC_TESTNET.chainIdHex,
@@ -18,14 +25,12 @@ export const ARC_NETWORK = {
   blockExplorerUrls: [ARC_TESTNET.explorer],
 };
 
-type Eth = {
-  request: (a: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on?: (event: string, cb: (...args: unknown[]) => void) => void;
-  removeListener?: (event: string, cb: (...args: unknown[]) => void) => void;
-};
-
 declare global {
-  interface Window { ethereum?: Eth }
+  interface Window { ethereum?: Eip1193Provider }
+}
+
+function activeProvider(): Eip1193Provider | null {
+  return getSelectedProvider() ?? (typeof window !== "undefined" ? window.ethereum ?? null : null);
 }
 
 export function useWallet() {
@@ -33,8 +38,9 @@ export function useWallet() {
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !window.ethereum) return;
-    window.ethereum.request({ method: "eth_accounts" }).then((accs) => {
+    const eth = activeProvider();
+    if (!eth) return;
+    eth.request({ method: "eth_accounts" }).then((accs) => {
       const a = (accs as string[])[0];
       if (a) setAddress(a.toLowerCase());
     }).catch(() => {});
@@ -42,58 +48,52 @@ export function useWallet() {
       const a = (accs as string[])[0];
       setAddress(a ? a.toLowerCase() : null);
     };
-    window.ethereum.on?.("accountsChanged", handler);
-    return () => window.ethereum?.removeListener?.("accountsChanged", handler);
+    eth.on?.("accountsChanged", handler);
+    return () => eth.removeListener?.("accountsChanged", handler);
   }, []);
 
-  const connect = useCallback(async () => {
-    if (!window.ethereum) {
-      toast.error("No wallet detected. Install MetaMask to continue.");
+  const connect = useCallback(async (chosen?: DiscoveredWallet) => {
+    if (chosen) setSelected(chosen);
+    const eth = activeProvider();
+    if (!eth) {
+      toast.error("No wallet detected. Install MetaMask, Trust Wallet, Phantom or another EVM wallet.");
       return null;
     }
     setConnecting(true);
     try {
-      // Force MetaMask to prompt account selection every time, even after a prior connect.
       try {
-        await window.ethereum.request({
-          method: "wallet_requestPermissions",
-          params: [{ eth_accounts: {} }],
-        });
+        await eth.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
       } catch (permErr: unknown) {
         const c = (permErr as { code?: number })?.code;
-        // 4001 = user rejected the permission prompt.
         if (c === 4001) throw permErr;
-        // Older wallets may not support wallet_requestPermissions — fall through to eth_requestAccounts.
       }
-      const accs = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
+      const accs = (await eth.request({ method: "eth_requestAccounts" })) as string[];
       const addr = accs[0]?.toLowerCase() ?? null;
       if (!addr) throw new Error("No account selected");
-      // Only switch/add Arc when the wallet is not already on the expected chain.
       try {
-        const current = ((await window.ethereum.request({ method: "eth_chainId" })) as string).toLowerCase();
+        const current = ((await eth.request({ method: "eth_chainId" })) as string).toLowerCase();
         if (current !== ARC_NETWORK.chainId.toLowerCase()) {
-          await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ARC_NETWORK.chainId }] });
+          await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ARC_NETWORK.chainId }] });
         }
       } catch (err: unknown) {
         const e = err as { code?: number };
         if (e?.code === 4902) {
           try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [ARC_NETWORK] });
+            await eth.request({ method: "wallet_addEthereumChain", params: [ARC_NETWORK] });
           } catch (addError) {
             if (isStaleArcNetworkError(addError)) throw new Error(STALE_ARC_NETWORK_MESSAGE);
             throw addError;
           }
-          await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ARC_NETWORK.chainId }] }).catch(() => undefined);
+          await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ARC_NETWORK.chainId }] }).catch(() => undefined);
         } else {
-          const current = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
+          const current = await eth.request({ method: "eth_chainId" }).catch(() => null);
           if (typeof current === "string" && current.toLowerCase() === STALE_ARC_CHAIN_ID_HEX) throw new Error(STALE_ARC_NETWORK_MESSAGE);
           throw err;
         }
       }
-      // Prove wallet ownership with a signature challenge.
       const message = `ARC NOVA — Sign in to verify wallet ownership.\n\nAddress: ${addr}\nNonce: ${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
       try {
-        await window.ethereum.request({ method: "personal_sign", params: [message, addr] });
+        await eth.request({ method: "personal_sign", params: [message, addr] });
       } catch (sigErr: unknown) {
         const c = (sigErr as { code?: number })?.code;
         if (c === 4001) throw new Error("Signature declined — wallet not linked");
@@ -113,17 +113,15 @@ export function useWallet() {
 
   const disconnect = useCallback(async () => {
     setAddress(null);
-    // Try to revoke MetaMask account permission so the next connect forces a fresh prompt + signature.
     try {
-      await window.ethereum?.request({
-        method: "wallet_revokePermissions",
-        params: [{ eth_accounts: {} }],
-      });
+      await activeProvider()?.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] });
     } catch {
       // Older wallets don't support wallet_revokePermissions — safe to ignore.
     }
+    clearSelected();
     toast.success("Wallet disconnected");
   }, []);
 
   return { address, connecting, connect, disconnect };
 }
+
