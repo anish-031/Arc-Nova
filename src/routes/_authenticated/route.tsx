@@ -64,7 +64,7 @@ function AuthedLayout() {
       <aside className={`${collapsed ? "w-16" : "w-60"} shrink-0 border-r border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 h-screen flex flex-col transition-all`}>
         <div className="h-14 px-4 flex items-center justify-between border-b border-zinc-800">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-sm">A</div>
+            <img src="/logo.png" alt="ARC NOVA" className="h-8 w-8 rounded-lg object-cover" />
             {!collapsed && <span className="font-display tracking-widest text-neon text-sm">ARC NOVA</span>}
           </Link>
           <button onClick={() => setCollapsed((c) => !c)} className="text-muted-foreground hover:text-foreground">
