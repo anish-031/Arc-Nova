@@ -78,14 +78,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ARC NOVA — Cyberpunk Web3 Marketplace" },
-      { name: "description", content: "ARC NOVA is a gamified Web3 marketplace on Arc Network. Connect your wallet, trade assets, earn XP and level up." },
+      { title: "ARC NOVA — Cyberpunk Marketplace & Web3 Hub" },
+      { name: "description", content: "Buy X-Premium, top up tokens, trade marketplace items. Connect your wallet on Arc Network, earn XP and level up." },
       { name: "author", content: "ARC NOVA" },
-      { property: "og:title", content: "ARC NOVA — Cyberpunk Web3 Marketplace" },
-      { property: "og:description", content: "Connect your wallet on Arc Network. Trade, earn XP, and level up in the ARC NOVA grid." },
+      { property: "og:title", content: "ARC NOVA — Cyberpunk Marketplace & Web3 Hub" },
+      { property: "og:description", content: "Buy X-Premium, top up tokens, trade marketplace items. Connect your wallet on Arc Network, earn XP and level up." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@arcnova" },
+      { name: "twitter:title", content: "ARC NOVA — Cyberpunk Marketplace & Web3 Hub" },
+      { name: "twitter:description", content: "Buy X-Premium, top up tokens, trade marketplace items. Connect your wallet on Arc Network, earn XP and level up." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/uqXyvR25SqMAwaM996JLEqTQRTI2/social-images/social-1785150247498-1000051195.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/uqXyvR25SqMAwaM996JLEqTQRTI2/social-images/social-1785150247498-1000051195.webp" },
     ],
     links: [
       {

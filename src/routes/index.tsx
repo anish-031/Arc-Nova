@@ -6,7 +6,7 @@ export const Route = createFileRoute("/")({
       { title: "ARC NOVA — Cyberpunk Marketplace & Web3 Hub" },
       { name: "description", content: "Buy X-Premium, top up tokens, trade marketplace items. Connect your wallet on Arc Network, earn XP and level up." },
       { property: "og:title", content: "ARC NOVA — Cyberpunk Marketplace & Web3 Hub" },
-      { property: "og:description", content: "Gamified Web3 marketplace. Connect, earn XP, level up." },
+      { property: "og:description", content: "Buy X-Premium, top up tokens, trade marketplace items. Connect your wallet on Arc Network, earn XP and level up." },
     ],
   }),
   component: Landing,
