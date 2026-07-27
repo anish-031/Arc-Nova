@@ -26,9 +26,6 @@ import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenti
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -116,22 +113,6 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,10 +131,8 @@ export interface FileRoutesByFullPath {
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/x-premium': typeof AuthenticatedXPremiumRoute
-  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
-  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
+
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
@@ -171,10 +150,8 @@ export interface FileRoutesByTo {
   '/topup': typeof AuthenticatedTopupRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/x-premium': typeof AuthenticatedXPremiumRoute
-  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
-  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
+
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
@@ -194,10 +171,8 @@ export interface FileRoutesById {
   '/_authenticated/topup': typeof AuthenticatedTopupRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/_authenticated/x-premium': typeof AuthenticatedXPremiumRoute
-  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
-  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
+
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -217,9 +192,6 @@ export interface FileRouteTypes {
     | '/topup'
     | '/wallet'
     | '/x-premium'
-    | '/lovable/email/auth/preview'
-    | '/lovable/email/auth/webhook'
-    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -238,9 +210,6 @@ export interface FileRouteTypes {
     | '/topup'
     | '/wallet'
     | '/x-premium'
-    | '/lovable/email/auth/preview'
-    | '/lovable/email/auth/webhook'
-    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -260,19 +229,14 @@ export interface FileRouteTypes {
     | '/_authenticated/topup'
     | '/_authenticated/wallet'
     | '/_authenticated/x-premium'
-    | '/lovable/email/auth/preview'
-    | '/lovable/email/auth/webhook'
-    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
+
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
-  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
-  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -310,160 +274,219 @@ declare module '@tanstack/react-router' {
       path: '/x-premium'
       fullPath: '/x-premium'
       preLoaderRoute: typeof AuthenticatedXPremiumRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/wallet': {
       id: '/_authenticated/wallet'
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/topup': {
       id: '/_authenticated/topup'
       path: '/topup'
       fullPath: '/topup'
       preLoaderRoute: typeof AuthenticatedTopupRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/tools': {
       id: '/_authenticated/tools'
       path: '/tools'
       fullPath: '/tools'
       preLoaderRoute: typeof AuthenticatedToolsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/rewards': {
       id: '/_authenticated/rewards'
       path: '/rewards'
       fullPath: '/rewards'
       preLoaderRoute: typeof AuthenticatedRewardsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/quests': {
       id: '/_authenticated/quests'
       path: '/quests'
       fullPath: '/quests'
       preLoaderRoute: typeof AuthenticatedQuestsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/orders': {
       id: '/_authenticated/orders'
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof AuthenticatedOrdersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/memes': {
       id: '/_authenticated/memes'
       path: '/memes'
       fullPath: '/memes'
       preLoaderRoute: typeof AuthenticatedMemesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/marketplace': {
       id: '/_authenticated/marketplace'
       path: '/marketplace'
       fullPath: '/marketplace'
       preLoaderRoute: typeof AuthenticatedMarketplaceRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/leaderboard': {
       id: '/_authenticated/leaderboard'
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/preview': {
-      id: '/lovable/email/auth/preview'
-      path: '/lovable/email/auth/preview'
-      fullPath: '/lovable/email/auth/preview'
-      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRouteWithChildren
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
-  AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
-  AuthenticatedMemesRoute: typeof AuthenticatedMemesRoute
-  AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
-  AuthenticatedQuestsRoute: typeof AuthenticatedQuestsRoute
-  AuthenticatedRewardsRoute: typeof AuthenticatedRewardsRoute
-  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
-  AuthenticatedTopupRoute: typeof AuthenticatedTopupRoute
-  AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
-  AuthenticatedXPremiumRoute: typeof AuthenticatedXPremiumRoute
+export interface RootRouteConfig {
+  layout?: boolean
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
-  AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
-  AuthenticatedMemesRoute: AuthenticatedMemesRoute,
-  AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
-  AuthenticatedQuestsRoute: AuthenticatedQuestsRoute,
-  AuthenticatedRewardsRoute: AuthenticatedRewardsRoute,
-  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedToolsRoute: AuthenticatedToolsRoute,
-  AuthenticatedTopupRoute: AuthenticatedTopupRoute,
-  AuthenticatedWalletRoute: AuthenticatedWalletRoute,
-  AuthenticatedXPremiumRoute: AuthenticatedXPremiumRoute,
-}
+const rootRouteConfig: RootRouteConfig = {}
 
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+const rootRoute = rootRouteImport.spliceChildren([
+  ResetPasswordRoute,
+  AuthRoute,
+  AuthenticatedRouteRoute,
+  IndexRoute,
+])
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
-  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
-  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
+const AuthenticatedRouteRouteWithChildren = AuthenticatedRouteRoute.spliceChildren(
+  [
+    AuthenticatedXPremiumRoute,
+    AuthenticatedWalletRoute,
+    AuthenticatedTopupRoute,
+    AuthenticatedToolsRoute,
+    AuthenticatedSettingsRoute,
+    AuthenticatedRewardsRoute,
+    AuthenticatedQuestsRoute,
+    AuthenticatedOrdersRoute,
+    AuthenticatedMemesRoute,
+    AuthenticatedMarketplaceRoute,
+    AuthenticatedLeaderboardRoute,
+    AuthenticatedDashboardRoute,
+    AuthenticatedAdminRoute,
+  ],
+)
+
+export const routeTree = rootRoute.configure(rootRouteConfig) as typeof rootRoute
+
+/* ROUTE_MANIFEST_START
+{
+  "routes": {
+    "__root__": {
+      "filePath": "__root.tsx",
+      "children": [
+        "/reset-password",
+        "/auth",
+        "/_authenticated",
+        "/"
+      ]
+    },
+    "/reset-password": {
+      "filePath": "reset-password.tsx"
+    },
+    "/auth": {
+      "filePath": "auth.tsx"
+    },
+    "/_authenticated": {
+      "filePath": "_authenticated/route.tsx",
+      "children": [
+        "/_authenticated/x-premium",
+        "/_authenticated/wallet",
+        "/_authenticated/topup",
+        "/_authenticated/tools",
+        "/_authenticated/settings",
+        "/_authenticated/rewards",
+        "/_authenticated/quests",
+        "/_authenticated/orders",
+        "/_authenticated/memes",
+        "/_authenticated/marketplace",
+        "/_authenticated/leaderboard",
+        "/_authenticated/dashboard",
+        "/_authenticated/admin"
+      ]
+    },
+    "/": {
+      "filePath": "index.tsx"
+    },
+    "/_authenticated/x-premium": {
+      "filePath": "_authenticated/x-premium.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/wallet": {
+      "filePath": "_authenticated/wallet.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/topup": {
+      "filePath": "_authenticated/topup.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/tools": {
+      "filePath": "_authenticated/tools.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/settings": {
+      "filePath": "_authenticated/settings.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/rewards": {
+      "filePath": "_authenticated/rewards.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/quests": {
+      "filePath": "_authenticated/quests.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/orders": {
+      "filePath": "_authenticated/orders.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/memes": {
+      "filePath": "_authenticated/memes.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/marketplace": {
+      "filePath": "_authenticated/marketplace.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/leaderboard": {
+      "filePath": "_authenticated/leaderboard.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/dashboard": {
+      "filePath": "_authenticated/dashboard.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/admin": {
+      "filePath": "_authenticated/admin.tsx",
+      "parent": "/_authenticated"
+    }
+  }
 }
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+ROUTE_MANIFEST_END */
